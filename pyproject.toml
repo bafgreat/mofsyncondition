@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mofsyncondition"
+version = "0.1.0"
+description = "Tool for extracting synthesis condition of MOFs"
+authors = ["Dinga Wonanke"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+spacy = "3.6.0"
+inscriptis = "2.3.2"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.2"
+chemdataextractor = "^1.3.0"
+scikit-learn = "^1.3.0"
+
+[tool.poetry.scripts]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
