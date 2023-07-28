@@ -12,6 +12,7 @@ from sklearn.pipeline import Pipeline
 from mofsyncondition.doc import convert_html_to_text
 from mofsyncondition.doc import doc_parser
 from mofsyncondition.conditions import synthesis_condition_extraction
+from mofsyncondition.conditions import chemical_entity_regex
 
 
 def spacy_tokenizer(plain_text):
@@ -57,7 +58,7 @@ def preselected_data(plain_text):
     metal_precursors = synthesis_condition_extraction.metal_precursors_in_text(
         name_of_chemicals)
     mofs = synthesis_condition_extraction.mof_alias_in_text(name_of_chemicals)
-    chem_data_to_select = metal_precursors + mofs
+    chem_data_to_select = name_of_chemicals  # metal_precursors + mofs
     for chem in chem_data_to_select:
         paragraph = doc_parser.paragraph_containing_word(paragraphs, chem)
         all_keys = paragraph.keys()
@@ -71,10 +72,14 @@ def preselected_data(plain_text):
         print(key)
         print('')
         print(selected_paragraphs[key])
+    ccdc_paragraph = doc_parser.paragraph_containing_word(paragraphs, 'CCDC')
+    data = ''.join(list(ccdc_paragraph.values()))
+    _, spacy_doc = doc_parser.tokenize_doc(data )
+    print('ccdc_number: ', chemical_entity_regex.find_ccdc_number(spacy_doc))
     return selected_paragraphs
 
 
-test = convert_html_to_text.html_2_text2('../db/html/CEPHAG.html')
+test = convert_html_to_text.html_2_text2('../db/html/FAXQIH.html')
 preselected_data(test)
 # selected_par = [par for par in doc_parser.paragraph_containing_word(
 #     paragraphs, 'Zn(NO3)2·4H2O')

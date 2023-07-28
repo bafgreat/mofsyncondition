@@ -498,3 +498,25 @@ def chemical_formula_regex(paragraph):
     pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
     print(re.findall(pattern, paragraph))
     return  # re.compile(pattern)
+
+def find_ccdc_number(spacy_doc):
+    '''
+    Extract ccdc numbers for journals
+    Parameters
+    ----------
+    spacy_doc: spacy document, which is paragraph containing CCDC 
+
+    Returns
+    -------
+    ccdc_number
+    '''
+    for sentence in spacy_doc.sents:
+        if "CCDC" in sentence.text:
+            numbers = re.findall(r'\d+',  sentence.text)
+            break
+    if len(numbers) == 2:
+        ccdc_number = list(range(int(numbers[0]),int(numbers[1])+1))
+    else:
+        ccdc_number = [int(i) for i in numbers]
+    return ccdc_number
+    
