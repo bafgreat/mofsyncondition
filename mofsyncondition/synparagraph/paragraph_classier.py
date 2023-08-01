@@ -73,17 +73,23 @@ def preselected_data(plain_text):
         print('')
         print(selected_paragraphs[key])
     ccdc_paragraph = doc_parser.paragraph_containing_word(paragraphs, 'CCDC')
+
     data = ''.join(list(ccdc_paragraph.values()))
-    _, spacy_doc = doc_parser.tokenize_doc(data )
-    print('ccdc_number: ', chemical_entity_regex.find_ccdc_number(spacy_doc))
+    _, spacy_doc = doc_parser.tokenize_doc(data)
+    # print(spacy_doc)
+    # print('ccdc_number: ', chemical_entity_regex.find_ccdc_number(spacy_doc))
+    # chemical_entity_regex.extract_esi(paragraphs)
     return selected_paragraphs
 
 
-test = convert_html_to_text.html_2_text2('../db/html/FAXQIH.html')
-preselected_data(test)
-# selected_par = [par for par in doc_parser.paragraph_containing_word(
-#     paragraphs, 'Zn(NO3)2·4H2O')
+plain_text = convert_html_to_text.html_2_text2('../db/html/LOXZEF01.html')
+preselected_data(plain_text)
+# paragraphs = doc_parser.text_2_paragraphs(plain_text)
+# paragraph = paragraphs[56]
+# name_of_chemicals, _, _ = doc_parser.chemdata_extractor(paragraph)
 
-# clean = spacy_tokenizer(selected_par[119])
-# mode_builder( )
-# print (clean)
+# print(name_of_chemicals)
+# print(paragraph)
+
+# print(chemical_entity_regex.extract_chemical_quantities(
+#     paragraph, name_of_chemicals))

@@ -3,6 +3,9 @@ from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
+import spacy
+from mofsyncondition.doc import doc_parser
+
 
 def solvents_regex():
     """
@@ -195,17 +198,17 @@ def mof_regex():
 def metal_salts_formular():
     base_metal = ['Zn', 'Mn', 'Cu', 'Fe', 'Al', 'Cd', 'Zr', 'Co', 'Mg', 'V', 'Ca',
                   'Ti', 'Pb', 'Ni', 'Na', 'Sc', 'Cr', 'Y', 'Nb', 'Mo', 'Ga', 'Ge',
-                  'Ta', 'Re', 'Os', 'Rb', 'Re', 'Hf', 'Ir', 'Pt', 'Au', 'Rf', 'Db', 
+                  'Ta', 'Re', 'Os', 'Rb', 'Re', 'Hf', 'Ir', 'Pt', 'Au', 'Rf', 'Db',
                   'Sg', 'Bh', 'Hs']
     prefix = '^'
-    #suffix = '([HBCNOFSPI0-9\[\]\(\)])\w*'
+    # suffix = '([HBCNOFSPI0-9\[\]\(\)])\w*'
     suffix = '([A-Za-z*0-9\[\]\(\)])(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)\w*'
     list_of_formulars = [prefix+metal+suffix for metal in base_metal]
     metal_formulars = '|'.join(list_of_formulars)
-    
+
     name_pattern = r'\b([Mm]olybdenum|[Nn]iobium|[Yy]ttrium|[Cc]hromium|[Ss]candium|[Ss]odium|[Nn]ickel|[Ll]ead|[Tt]itanium|[Zz]inc|[Mm]anganese|[Vv]anadium|[Mm]agnesium|[Cc]opper|[Ii]ron|[Ff]errous|[Aa]lumin(ium|um|o)|[Cc]admium|[Zz]irconium|[Cc]obalt)\s(\w+)\b'
-    
-    #pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
+
+    # pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
 
     # '^((Zn|Mn|Cu|Fe|Al|Cd|Zr|Co|Mg|V|Ti|Pb|Ni|Na|Sc|Cr|Y|Nb|Mo)|[Mm]olybdenum|[Nn]iobium|[Yy]ttrium|[Cc]hromium|[Ss]candium|[Ss]odium|[Nn]ickel|[Ll]ead|[Tt]itanium|[Zz]inc|[Mm]anganese|[Vv]anadium|[Mm]agnesium|[Cc]opper|[Ii]ron|[Ff]errous|[Aa]lumin(ium|um|o)|[Cc]admium|[Zz]irconium|[Cc]obalt)(\W|[0-9\+\-A-Z\.ivl\(\)\·\[\\]\\(\\)\\{\\}]+)?$'
     return re.compile(metal_formulars+'|'+name_pattern)
@@ -223,7 +226,10 @@ def synthetic_method_re():
         r"\w*onochemical\w*",
         # r"\w*o\w*thermal\w*",
         r"\w*o\w*chemical\w*",
-        r"\w*[eE]vaporation"
+        r"\w*[eE]vaporation",
+        r"[Ss]low diffusion",
+        r"[Bb]ranched tube",
+        r"[Cc]onventional solution casting"
     ]
     method = '|'.join(list_of_methods)
     return re.compile(method)
@@ -499,6 +505,7 @@ def chemical_formula_regex(paragraph):
     print(re.findall(pattern, paragraph))
     return  # re.compile(pattern)
 
+
 def find_ccdc_number(spacy_doc):
     '''
     Extract ccdc numbers for journals
@@ -510,13 +517,62 @@ def find_ccdc_number(spacy_doc):
     -------
     ccdc_number
     '''
+    numbers = []
     for sentence in spacy_doc.sents:
         if "CCDC" in sentence.text:
-            numbers = re.findall(r'\d+',  sentence.text)
+            numbers.extend(re.findall(r'\d{6,}',  sentence.text))
             break
     if len(numbers) == 2:
-        ccdc_number = list(range(int(numbers[0]),int(numbers[1])+1))
+        ccdc_number = list(range(int(min(numbers)), int(max(numbers))+1))
     else:
         ccdc_number = [int(i) for i in numbers]
-    return ccdc_number
+    return list(set(ccdc_number))
+
+
+def extract_chemical_quantities(paragraph, chemicals_list):
+    """
+    A function that extract quantities and units of a list of chemicals
+    and paragraphs. 
+    Parameters
+    ----------
+    paragraph: A text from which to extract quantities
+    chemicals_list : list of chemical names
     
+    Returns
+    -------
+    dictionary of keys (chemical name) and values (list of quantities and units)
+    """
+    extracted_data = {}
+    for chemical in chemicals_list:
+        tmp = []
+        adj_chemical = re.escape(chemical)
+        
+        # pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(m[lL]|m[mM]ol|g|mg|[Mm]olar)\)'
+        pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(?:([a-zA-Z]+))\)'
+
+        matches = re.findall(pattern, paragraph)
+        for match in matches:
+            match = [[match[i], match[i+1]] for i in range(0, len(match), 2)]
+            match = [i for i in match if len(i)==2]
+            match = [qty_unit  for qty_unit in match if all(string != '' for string in qty_unit)]
+            tmp.extend(match)
+        if chemical == 'H2O':
+            tmp = [qty_unit for qty_unit in tmp if qty_unit[1] == 'ml']
+        extracted_data[chemical] = tmp
+        extracted_data[chemical] = tmp
+    return extracted_data
+
+
+def extract_esi(paragraphs):
+    '''
+    '''
+    plain_text = ''
+    par = doc_parser.paragraph_containing_word(paragraphs, 'DOI')
+    for text in list(par.values()):
+        if 'ESI' and 'DOI' in text:
+            plain_text += ''.join(text)
+    # doi_esi = re.findall(r"\b10\.\d{4,}(?:\.\d+)*\/\S+\b", plain_text, re.IGNORECASE)
+    # #doi_esi = "https://doi.org/"+doi_esi[0]
+    # # from PyPaperBot import PyPaperBot
+    # bot = PyPaperBot()
+    # bot.download_paper(doi_esi)
