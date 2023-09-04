@@ -1,0 +1,160 @@
+LR		CV
+Fold_:0
+Accuracy = 0.9890358313552616
+roc_auc = 0.8979500995665924
+f_score = 0.836424957841484
+recall = 1.0
+precision = 0.8
+
+LR		CV
+Fold_:1
+Accuracy = 0.9893749293545835
+roc_auc = 0.904643695549321
+f_score = 0.8433333333333333
+recall = 1.0
+precision = 0.8135048231511254
+
+LR		CV
+Fold_:2
+Accuracy = 0.9874519556861858
+roc_auc = 0.8831408531608066
+f_score = 0.8115449915110357
+recall = 1.0
+precision = 0.7709677419354839
+
+LR		CV
+Fold_:3
+Accuracy = 0.9892606827944834
+roc_auc = 0.9027299936511776
+f_score = 0.8408710217755444
+recall = 1.0
+precision = 0.8096774193548387
+
+LR		CV
+Fold_:4
+Accuracy = 0.9894867736830206
+roc_auc = 0.916836094567222
+f_score = 0.8482871125611745
+recall = 1.0
+precision = 0.8387096774193549
+
+NB		tfv
+Fold_:0
+Accuracy = 0.9655250367356166
+roc_auc = 0.5080645161290323
+f_score = 0.031746031746031744
+recall = 1.0
+precision = 0.016129032258064516
+
+NB		tfv
+Fold_:1
+Accuracy = 0.9655250367356166
+roc_auc = 0.5096463022508039
+f_score = 0.03785488958990536
+recall = 1.0
+precision = 0.01929260450160772
+
+NB		tfv
+Fold_:2
+Accuracy = 0.9656341849423469
+roc_auc = 0.5096774193548387
+f_score = 0.0379746835443038
+recall = 1.0
+precision = 0.01935483870967742
+
+NB		tfv
+Fold_:3
+Accuracy = 0.965860275830884
+roc_auc = 0.5129032258064516
+f_score = 0.05031446540880503
+recall = 1.0
+precision = 0.025806451612903226
+
+NB		tfv
+Fold_:4
+Accuracy = 0.9660863667194212
+roc_auc = 0.5176833600386975
+f_score = 0.06832298136645962
+recall = 1.0
+precision = 0.035483870967741936
+
+LR		tfv
+Fold_:0
+Accuracy = 0.9894879620210241
+roc_auc = 0.8938582798181035
+f_score = 0.8410256410256409
+recall = 1.0
+precision = 0.7909967845659164
+
+LR		tfv
+Fold_:1
+Accuracy = 0.9886967333559399
+roc_auc = 0.877568043469225
+f_score = 0.8245614035087719
+recall = 1.0
+precision = 0.7580645161290323
+
+LR		tfv
+Fold_:2
+Accuracy = 0.9910694099027809
+roc_auc = 0.9083301841158509
+f_score = 0.8654173764906303
+recall = 1.0
+precision = 0.8193548387096774
+
+LR		tfv
+Fold_:3
+Accuracy = 0.9890345919059462
+roc_auc = 0.883960909393234
+f_score = 0.831304347826087
+recall = 1.0
+precision = 0.7709677419354839
+
+LR		tfv
+Fold_:4
+Accuracy = 0.9902780917929007
+roc_auc = 0.8985941893158389
+f_score = 0.852233676975945
+recall = 1.0
+precision = 0.8
+
+NB		CV
+Fold_:0
+Accuracy = 0.9837232960325534
+roc_auc = 0.906077718621409
+f_score = 0.779816513761468
+recall = 1.0
+precision = 0.8225806451612904
+
+NB		CV
+Fold_:1
+Accuracy = 0.984401492031197
+roc_auc = 0.9299509247009826
+f_score = 0.7970588235294117
+recall = 1.0
+precision = 0.8713826366559485
+
+NB		CV
+Fold_:2
+Accuracy = 0.9830431833597106
+roc_auc = 0.9010626719472746
+f_score = 0.7706422018348622
+recall = 1.0
+precision = 0.8129032258064516
+
+NB		CV
+Fold_:3
+Accuracy = 0.982930137915442
+roc_auc = 0.9134387187471658
+f_score = 0.774962742175857
+recall = 1.0
+precision = 0.8387096774193549
+
+NB		CV
+Fold_:4
+Accuracy = 0.9836084105810536
+roc_auc = 0.9106815158569398
+f_score = 0.7806354009077155
+recall = 1.0
+precision = 0.832258064516129
+

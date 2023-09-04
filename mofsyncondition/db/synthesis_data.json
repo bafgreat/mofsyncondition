@@ -1,0 +1,136 @@
+{
+    "Test3": {
+        "step_0": {
+            "alias": [],
+            "melting temperature": [],
+            "metal precursor": [
+                "Cu(ClO4)2\u00b76H2O"
+            ],
+            "quanties": {
+                "Cu(ClO4)2\u00b76H2O": [
+                    [
+                        "37",
+                        "mg"
+                    ],
+                    [
+                        "0.1",
+                        "mmol"
+                    ]
+                ],
+                "Hpya\u00b7HCl": [
+                    [
+                        "17",
+                        "mg"
+                    ],
+                    [
+                        "0.1",
+                        "mmol"
+                    ]
+                ],
+                "KOH": [
+                    [
+                        "0.1",
+                        "M"
+                    ]
+                ],
+                "MeOH": [
+                    [
+                        "5",
+                        "mL"
+                    ]
+                ]
+            },
+            "reaction temperature": [],
+            "reaction time": [],
+            "solvent": [
+                "KOH",
+                "water",
+                "methanol"
+            ],
+            "synthetic method": [
+                "slow evaporation"
+            ],
+            "warning": "CAUTION! Perchlorate complexes of metal ions in the presence of organic ligands are potentially explosive. Only a small amount of material should be handled with care."
+        },
+        "step_1": {
+            "alias": [
+                "Co(pya)2(H2O)2]n"
+            ],
+            "melting temperature": [],
+            "metal precursor": [
+                "Co(OAc)2\u00b74H2O"
+            ],
+            "quanties": {
+                "Co(OAc)2\u00b74H2O": [
+                    [
+                        "25",
+                        "mg"
+                    ],
+                    [
+                        "0.1",
+                        "mmol"
+                    ]
+                ],
+                "Hpya\u00b7HCl": [
+                    [
+                        "17",
+                        "mg"
+                    ],
+                    [
+                        "0.1",
+                        "mmol"
+                    ]
+                ],
+                "MeOH": [
+                    [
+                        "5",
+                        "mL"
+                    ]
+                ]
+            },
+            "reaction temperature": [],
+            "reaction time": [],
+            "solvent": [
+                "methanol",
+                "water"
+            ],
+            "synthetic method": [
+                "slow evaporation"
+            ],
+            "warning": "CAUTION! Perchlorate complexes of metal ions in the presence of organic ligands are potentially explosive. Only a small amount of material should be handled with care."
+        },
+        "step_2": {
+            "alias": [
+                "Ni(pya)2(H2O)2]n"
+            ],
+            "melting temperature": [],
+            "metal precursor": [
+                "Ni(ClO4)2\u00b76H2O"
+            ],
+            "quanties": {
+                "Ni(ClO4)2\u00b76H2O": [
+                    [
+                        "36",
+                        "mg"
+                    ],
+                    [
+                        "0.1",
+                        "mmol"
+                    ]
+                ]
+            },
+            "reaction temperature": [],
+            "reaction time": [
+                72.0
+            ],
+            "solvent": [
+                "methanol",
+                "EtOH"
+            ],
+            "synthetic method": [
+                "slow evaporation"
+            ],
+            "warning": "CAUTION! Perchlorate complexes of metal ions in the presence of organic ligands are potentially explosive. Only a small amount of material should be handled with care."
+        }
+    }
+}

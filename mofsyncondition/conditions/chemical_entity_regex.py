@@ -14,32 +14,29 @@ def solvents_regex():
     solvent_list = [
         'THF', 'acetone', 'acetone', 'chloroform' + 'chloroform', 'methanol',
         'methanol', 'pyridine', 'pyridine', 'DMSO', 'dimethylsulfoxide', 'dimethylsulfoxide',
-        'MeOH', 'MeOH' +
-        'tetrachloroethane', '2,2,2-Trifluorethanol',
+        'MeOH', 'MeOH', 'tetrachloroethane', '2,2,2-Trifluorethanol', 'KOH',
         'tetrachloroethane', '1,1,2,2-tetrachloroethane', 'tetrachloroethane',
         '1-butanol', '1-butylimidazole', '1-cyclohexanol', '1-decanol', '1-heptanol', '1-hexanol',
-        '1-methylethyl' + 'acetate', '1-octanol', '1-pentanol', '1-phenylethanol', '1-propanol',
+        '1-octanol', '1-pentanol', '1-phenylethanol', '1-propanol',
         '1-undecanol', '1,1,1-trifluoroethanol', '1,1,1,3,3,3-hexafluoro-2-propanol',
         '1,1,1,3,3,3-hexafluoropropan-2-ol', '1,1,2-trichloroethane', '1,2-c2h4cl2',
         '1,2-dichloroethane', '1,2-dimethoxyethane', '1,2-dimethylbenzene', '1,2-ethanediol',
         '1,2,4-trichlorobenzene', '1,4-dimethylbenzene', '1,4-dioxane',
-        '2-(n-morpholino)ethanesulfonic' +
-        'acid', '2-butanol', '2-butanone', '2-me-thf', '2-methf',
-        '2-methoxy-2-methylpropane', '2-methyl' + 'tetrahydrofuran', '2-methylpentane',
+        '2-(n-morpholino)ethanesulfonic acid', '2-butanol', '2-butanone', '2-me-thf', '2-methf',
+        '2-methoxy-2-methylpropane', '2-methyltetrahydrofuran', '2-methylpentane',
         '2-methylpropan-1-ol', '2-methylpropan-2-ol', '2-methyltetrahydrofuran', '2-proh',
-        '2-propanol', '2-propyl' + 'acetate', '2-pyrrolidone', '2,2,2-trifluoroethanol',
+        '2-propanol', '2-pyrrolidone', '2,2,2-trifluoroethanol',
         '2,2,4-trimethylpentane', '2Me-THF', '2MeTHF', '3-methyl-pentane',
         '4-methyl-1,3-dioxolan-2-one', 'acetic acid', 'aceto-nitrile', 'acetone',
         'acetonitrile', 'acetononitrile', 'AcOEt', 'AcOH', 'AgNO3', 'aniline', 'anisole',
         'benzonitrile', 'benzylalcohol', 'bromoform', 'Bu2O', 'Bu4NBr', 'Bu4NClO4',
         'Bu4NPF6', 'BuCN', 'BuOH', 'butan-1-ol', 'butan-2-ol', 'butan-2-one', 'butane',
-        'butanol', 'butanone', 'butene', 'butyl' + 'acetate', 'butyl' + 'acetonitrile',
-        'butyl' + 'alcohol', 'butyl' + 'amine', 'butyl' +
-        'chloride', 'butyl' + 'imidazole',
-        'butyronitrile', 'c-hexane', 'carbon' + 'disulfide', 'carbon' + 'tetrachloride',
+        'butanol', 'butanone', 'butene', 'butyl' + 'acetonitrile',
+        'butyl' + 'alcohol', 'butyl amine', 'butylchloride', 'butylimidazole',
+        'butyronitrile', 'c-hexane', 'carbon disulfide', 'carbon tetrachloride',
         'chlorobenzene', 'chloroform', 'chloromethane', 'chlorotoluene', 'CHX', 'cumene',
         'cyclohexane', 'cyclohexanol', 'cyclopentyl' +
-        'methyl' + 'ether', 'DCE', 'DCM', 'decalin',
+        'methylether', 'DCE', 'DCM', 'decalin',
         'decan-1-ol', 'decane', 'decanol', 'DEE', 'di-isopropyl' + 'ether',
         'di-n-butyl' + 'ether', 'di-n-hexyl' +
         'ether', 'dibromoethane', 'dibutoxymethane',
@@ -160,7 +157,7 @@ def solvents2_regex():
                     'methyltetrahydrofuran', 'MIBK', 'morpholine', 'mTHF', 'n-butanol', 'n-butyl acetate', 'n-decane',
                     'n-heptane', 'n-HEX', 'n-hexane', 'n-methylformamide', 'n-methylpyrrolidone', 'n-nonane', 'n-octanol',
                     'n-pentane', 'n-propanol', 'n,n-dimethylacetamide', 'n,n-dimethylformamide', 'n,n-DMF', 'Na2SO4', 'NaCl',
-                    'NaClO4', 'NaHCO3', 'NaOH', 'nBu4NBF4', 'nitric acid', 'nitrobenzene', 'nitromethane', 'NMP', 'nonane',
+                    'NaClO4', 'NaHCO3', 'NaOH', 'KOH', 'nBu4NBF4', 'nitric acid', 'nitrobenzene', 'nitromethane', 'NMP', 'nonane',
                     'NPA', 'nujol', 'o-dichlorobenzene', 'o-xylene', 'octan-1-ol', 'octane', 'octanol', 'octene', 'ODCB',
                     'p-xylene', 'PBS', 'pentan-1-ol', 'pentane', 'pentanol', 'pentanone', 'pentene', 'PeOH', 'perchloric acid',
                     'PhCH3', 'PhCl', 'PhCN', 'phenoxyethanol', 'phenyl acetylene', 'Phenyl ethanol', 'phenylamine',
@@ -229,7 +226,9 @@ def synthetic_method_re():
         r"\w*[eE]vaporation",
         r"[Ss]low diffusion",
         r"[Bb]ranched tube",
-        r"[Cc]onventional solution casting"
+        r"[Cc]onventional solution casting",
+        r'[lL]inker exchange',
+        r'[mM]illing'
     ]
     method = '|'.join(list_of_methods)
     return re.compile(method)
@@ -328,6 +327,7 @@ def solvent_abbreviation(word):
         'CCl4': 'tetrachloromethane',
         'H2O': 'water',
         '2,6-NDC': '2,6-Naphthalenedicarboxylic acid'
+        # 'KOH':'potassium hydroxide'
     }
     if word in list(all_abbreviation.keys()):
         return all_abbreviation[word]
@@ -497,7 +497,7 @@ def sentence_containing_word(spacy_doc, word):
 def get_ph(paragraph):
     pH_regex = r"(\d+\.\d+)\s*p\s*h|\s*p\s*h\s*(\d+\.\d+)|(\d+\.\d+)\s*(acidic|acid|neutral|base|basic)|\s*(acidic|acid|neutral|base|basic)\s*(\d+\.\d+)"
     matches = re.findall(pH_regex, paragraph)
-    print(matches)
+    return matches
 
 
 def chemical_formula_regex(paragraph):
@@ -537,30 +537,89 @@ def extract_chemical_quantities(paragraph, chemicals_list):
     ----------
     paragraph: A text from which to extract quantities
     chemicals_list : list of chemical names
-    
+
     Returns
     -------
     dictionary of keys (chemical name) and values (list of quantities and units)
     """
     extracted_data = {}
+    chemicals_list = [i for i in chemicals_list if i != 'H']
     for chemical in chemicals_list:
         tmp = []
         adj_chemical = re.escape(chemical)
-        
+
         # pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(m[lL]|m[mM]ol|g|mg|[Mm]olar)\)'
         pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(?:([a-zA-Z]+))\)'
 
         matches = re.findall(pattern, paragraph)
         for match in matches:
             match = [[match[i], match[i+1]] for i in range(0, len(match), 2)]
-            match = [i for i in match if len(i)==2]
-            match = [qty_unit  for qty_unit in match if all(string != '' for string in qty_unit)]
+            match = [i for i in match if len(i) == 2]
+            match = [qty_unit for qty_unit in match if all(
+                string != '' for string in qty_unit)]
             tmp.extend(match)
         if chemical == 'H2O':
             tmp = [qty_unit for qty_unit in tmp if qty_unit[1] == 'ml']
-        extracted_data[chemical] = tmp
-        extracted_data[chemical] = tmp
+        if len(tmp) > 0:
+            extracted_data[chemical] = tmp
+            extracted_data[chemical] = tmp
     return extracted_data
+
+
+def synthetic_warning(paragraphs):
+    """
+    Find warning in text, which provided synthetic
+    precaution
+    Parameters
+    ----------
+    paragraph: A text from which to extract quantities
+
+    Returns
+    -------
+    text 
+    """
+    warning = {}
+    pattern = r"(?i)\bcaution\b.*?[.?!]|(?i)\warning\b.*?[.?!]"
+    for i, paragraph in enumerate(paragraphs):
+        match = re.search(pattern, paragraph)
+        if match:
+            warning[i] = paragraph
+    return warning
+
+
+def extract_abbreviations(text):
+    # Step 1: Identify potential abbreviations
+    pattern = re.compile(r'\b[A-Z][A-Za-z\.]*[A-Za-z]\b')
+    potential_abbreviations = pattern.findall(text)
+
+    # Step 2: Identify candidate definitions
+    candidate_definitions = []
+    for abbreviation in potential_abbreviations:
+        pattern = re.compile(r'(?<=\b{0}\s)\(.*?\)'.format(abbreviation))
+        candidate_definitions.extend(pattern.findall(text))
+
+    # Step 3: Filter candidate definitions
+    abbreviations = {}
+    for abbreviation in set(potential_abbreviations):
+        abbreviation_pattern = re.compile(r'\b{0}\b'.format(abbreviation))
+        matching_definitions = [
+            definition for definition in candidate_definitions if abbreviation_pattern.search(definition)]
+        if matching_definitions:
+            abbreviations[abbreviation] = max(matching_definitions, key=len)
+
+    return abbreviations
+
+
+def find_subject(doc):
+    '''
+    find the subject of a python document
+    '''
+    for token in doc:
+        if ("subj" in token.dep_):
+            subtree = list(token.subtree)
+            start = subtree[0].i
+            end = subtree[-1].i + 1
+            return doc[start:end]
 
 
 def extract_esi(paragraphs):
@@ -571,7 +630,9 @@ def extract_esi(paragraphs):
     for text in list(par.values()):
         if 'ESI' and 'DOI' in text:
             plain_text += ''.join(text)
-    # doi_esi = re.findall(r"\b10\.\d{4,}(?:\.\d+)*\/\S+\b", plain_text, re.IGNORECASE)
+    doi_esi = re.findall(
+        r"\b10\.\d{4,}(?:\.\d+)*\/\S+\b", plain_text, re.IGNORECASE)
+
     # #doi_esi = "https://doi.org/"+doi_esi[0]
     # # from PyPaperBot import PyPaperBot
     # bot = PyPaperBot()

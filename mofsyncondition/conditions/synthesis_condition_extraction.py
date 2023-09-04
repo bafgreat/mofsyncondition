@@ -5,11 +5,16 @@ __status__ = "production"
 import re
 import glob
 import spacy
+from spacy.matcher import PhraseMatcher
 import en_core_web_sm
 from mofsyncondition.conditions import conditions_extraction
-from  mofsyncondition.conditions import chemical_entity_regex
+from mofsyncondition.conditions import chemical_entity_regex
 from mofsyncondition.doc.convert_html_to_text import html_2_text2
 from mofsyncondition.doc import doc_parser
+from mofsyncondition.synparagraph import extract_synthesis_paragraphs
+from mofsyncondition.io import filetyper
+nlp = spacy.load("en_core_web_sm")
+
 
 def regex_content(all_tokens, pattern):
     contents = []
@@ -32,6 +37,7 @@ def select_content(all_tokens, list_content):
         if token in list_content:
             content.append(token)
     return content
+
 
 def synthetic_method(tokens):
     """
@@ -86,10 +92,11 @@ def metal_precursors_in_text(tokens):
     -------
     token : list of words
     """
-    
+
     pattern = chemical_entity_regex.metal_salts_formular()
     metal_ = regex_content(tokens, pattern)
-    metal_salt = [text for text in metal_ if len(doc_parser.unclosed_brackets(text)) == 0]
+    metal_salt = [text for text in metal_ if len(
+        doc_parser.unclosed_brackets(text)) == 0]
     return metal_salt
 
 
@@ -131,155 +138,114 @@ def all_reaction_time(token, par_doc):
     reaction_time, stability_time, drying_time = chemical_entity_regex.reaction_time_breakdown(
         time_in_token, par_doc)
     return reaction_time, stability_time, drying_time
-    
-def synthesis_condition(plain_text, paragraphs):
+
+
+def synthesis_condition(plain_text):
     """
     """
     experimental_condition = {}
-    chemical_name, records, cde_doc = doc_parser.chemdata_extractor(plain_text)
-    stability_pattern, analysis_pattern = chemical_entity_regex.key_words_regex()
-    metal_precursors = metal_precursors_in_text(chemical_name)
-    all_mofs = mof_alias_in_text(chemical_name)
-    metal_precursors = [i for i in metal_precursors if not i in all_mofs]
-    seen = []
-    i = 0
-    for metal_formular in metal_precursors:
-        if not metal_formular.startswith('[') and not metal_formular.endswith(']'):
-            metal_salt_paragraph = doc_parser.paragraph_containing_word(
-                paragraphs, metal_formular)
-            for par_index in list(metal_salt_paragraph.keys()):
-                if not par_index in seen:
-                    par_text = metal_salt_paragraph[par_index]
-                    chemical_entity_regex.get_ph(par_text)
-                    par_tokens, par_doc = doc_parser.tokenize_doc(par_text)
-                    all_solvents = solvents_in_text(par_tokens)
-                    reaction_temp, stability_temp, drying_temp, melting_temp = all_reaction_temperature(par_tokens, par_doc)
-                    reaction_time, stability_time, drying_time = all_reaction_time(
-                        par_tokens, par_doc)
-                    mof_names = mof_alias_in_text(par_tokens)
-                    metal_salt = metal_precursors_in_text(par_tokens)
-                    method_synthetic = synthetic_method(par_tokens)
-                    conditions = {}
-                    react_temp = []
-                    stab_temp = []
-                    dry_temp = []
-                    react_time = []
-                    stab_time = []
-                    degas_time = []
-                    tmp_solvent = []
-                    mof_name = []
-                    methods = []
-                    melt_temp = []
-                    tmp_metal_reagent = []
-                    for solvent in all_solvents:
-                        tmp_solvent.append(solvent)
-                    for time in reaction_time:
-                        react_time.append(time)
-                    for time in stability_time:
-                        stab_time.append(time)
-                    for time in drying_time:
-                        degas_time.append(time)
-                    for temp in reaction_temp:
-                        react_temp.append(temp)
-                    for temp in stability_temp:
-                        stab_temp.append(temp)
-                    for temp in drying_temp:
-                        dry_temp.append(temp)
-                    for temp in melting_temp:
-                        melt_temp.append(temp)
-                    for mofs in mof_names:
-                        mof_name.append(mofs)
-                    for method in method_synthetic:
-                        methods.append(method)
-                    for salts in metal_salt:
-                        if not salts in all_mofs:
-                            tmp_metal_reagent.append(salts)
-                    sentence = chemical_entity_regex.sentence_containing_word(par_doc, metal_formular)
-                    match = re.search(analysis_pattern, sentence)
-                    match2 = re.search(stability_pattern, sentence)
-                    if not (match and match2): 
-                        conditions['metal precursor'] = list(set(tmp_metal_reagent))
-                        conditions['solvent'] = list(set(tmp_solvent))
-                        conditions['reaction temperature'] = list(set(react_temp))
-                        conditions['stability temperature'] = list(set(stab_temp))
-                        conditions['analysis temperature'] = list(set(dry_temp))
-                        conditions['melting temperature'] = list(set(melt_temp))
-                        conditions['reaction time'] = list(set(react_time))
-                        conditions['stability time'] = list(set(stab_time))
-                        conditions['drying time'] = list(set(degas_time))
-                        conditions['alias'] = list(set(mof_name))
-                        if len(methods) == 0:
-                            if 'water' in all_solvents or 'H2O' in all_solvents:
-                                methods.append('Hydrothermal')
-                            elif len(all_solvents) > 0:
-                                methods.append('Solvothermal')
-                        conditions['synthetic method'] = list(set(methods))
-                    if len(conditions) > 0:
-                        if len(mof_name)>0:
-                            experimental_condition['step'+str(i)] = conditions
-                        i += 1
-                    seen.append(par_index)
-    
-    return synthesis_condition2(experimental_condition, paragraphs)
+    paragraphs = doc_parser.text_2_paragraphs(plain_text)
+    warning = chemical_entity_regex.synthetic_warning(paragraphs)
+    synthetic_paragraphs = extract_synthesis_paragraphs.all_synthesis_paragraphs(
+        plain_text)
+    dic_synthetic_paragraphs = indices_of_sentetic_paragraphs(
+        paragraphs, synthetic_paragraphs)
 
-def synthesis_condition2(experimental_condition, paragraphs):
-    seen_mofs = []
-    seen_par = []
-    for steps in experimental_condition:
-        conditions = experimental_condition[steps]
-        mofs = conditions['alias']
-        for mof in mofs:
-            paragraph = doc_parser.paragraph_containing_word(paragraphs, mof)
-            for index in paragraph:
-                if not index in seen_par:
-                    par_text = paragraph[index]
-                    par_tokens, par_doc = doc_parser.tokenize_doc(par_text)
-                    reaction_temp, stability_temp, drying_temp, melting_temp = all_reaction_temperature(par_tokens, par_doc)
-                    reaction_time, stability_time, drying_time = all_reaction_time(par_tokens, par_doc)
-                    if len(conditions['reaction temperature']) == 0:
-                        conditions['reaction temperature'] = reaction_temp
-                    if len(conditions['stability temperature']) == 0:
-                        conditions['stability temperature'] = stability_temp
-                    if len(conditions['analysis temperature']) == 0:
-                        conditions['analysis temperature'] = drying_temp
-                    if len(conditions['melting temperature']) == 0:
-                        conditions['melting temperature'] = melting_temp 
-                    if len(conditions['reaction time']) == 0:
-                        conditions['reaction time'] = reaction_time
-                    if len(conditions['stability time']) == 0:
-                        conditions['stability time'] = stability_time
-                    if len(conditions['drying time']) == 0:
-                        conditions['drying time'] = drying_time
-                    if not mof in seen_mofs:
-                        if len(conditions['metal precursor']) == 0:
-                            conditions['metal precursor'] = list(set([i for i in metal_precursors_in_text(par_tokens) if not i in mofs]))
-                        if len(conditions['solvent']) == 0:
-                            conditions['solvent'] = solvents_in_text(par_tokens)
-                seen_par.append(index)
-            seen_mofs.append(mof)
-        experimental_condition[steps] = conditions
+    for steps, par_index in enumerate(list(dic_synthetic_paragraphs.keys())):
+        par_text = dic_synthetic_paragraphs[par_index]
+        chemical_names, record, abb = doc_parser.chemdata_extractor(par_text)
+
+        quantites = chemical_entity_regex.extract_chemical_quantities(
+            par_text, chemical_names)
+
+        all_mofs = mof_alias_in_text(par_text)
+        conditions = {}
+        par_tokens, par_doc = doc_parser.tokenize_doc(par_text)
+        all_solvents = solvents_in_text(par_tokens)
+        reaction_temp, stability_temp, drying_temp, melting_temp = all_reaction_temperature(
+            par_tokens, par_doc)
+        reaction_time, stability_time, drying_time = all_reaction_time(
+            par_tokens, par_doc)
+        mof_names = mof_alias_in_text(par_tokens)
+        metal_salt = metal_precursors_in_text(par_tokens)
+        method_synthetic = synthetic_method(par_tokens)
+        tmp_metal_reagent = []
+        for salts in metal_salt:
+            if not salts in all_mofs:
+                tmp_metal_reagent.append(salts)
+        conditions['metal precursor'] = [i for i in list(
+            set(tmp_metal_reagent)) if i in list(quantites.keys())]
+        conditions['solvent'] = list(set(all_solvents))
+        conditions['reaction temperature'] = list(set(reaction_temp))
+        conditions['melting temperature'] = list(set(melting_temp))
+        conditions['reaction time'] = list(set(reaction_time))
+        conditions['alias'] = list(set(mof_names))
+        if len(method_synthetic) == 0:
+            if 'water' in all_solvents or 'H2O' in all_solvents:
+                method_synthetic.append('hydrothermal')
+            elif len(all_solvents) > 0:
+                method_synthetic.append('solvothermal')
+        conditions['synthetic method'] = [method.lower()
+                                          for method in list(set(method_synthetic))]
+        warning_value = [i for i in list(warning.keys()) if i > par_index]
+
+        if len(warning_value) > 0:
+            conditions['warning'] = warning[warning_value[0]].strip()
+        else:
+            conditions['warning'] = 'no warning'
+        conditions['quanties'] = quantites
+        # conditions['meta_info'] = record
+        if len(conditions['metal precursor']) > 0:
+            experimental_condition['step_'+str(steps)] = conditions
     return experimental_condition
-        
-html_files = glob.glob('../../MOF_structures/data/htmls/*html')
-#html_files = glob.glob('../test/EDUSIF.html')
 
+
+def indices_of_sentetic_paragraphs(paragraphs, synthetic_paragraphs):
+    '''
+    script to matct
+    '''
+    # nlp = spacy.load("en_core_web_sm")
+    patterns = [nlp(text) for text in synthetic_paragraphs]
+    matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
+    matcher.add("MatchPhrase", None, *patterns)
+    matching_paragraphs = {}
+    for i, paragraph in enumerate(paragraphs):
+        doc = nlp(paragraph)
+        matches = matcher(doc)
+        if matches:
+            matching_paragraphs[i] = paragraph
+    return matching_paragraphs
+
+# html_files = glob.glob('../test/EDUSIF.html')
 
 
 def compile_synthesis_condition(html_file):
     name = html_file.split('/')[-1].split('.')[0]
     print(name)
     plain_text = html_2_text2(html_file)
-    tokens, _ = doc_parser.tokenize_doc(plain_text)
-    paragraphs = doc_parser.text_2_paragraphs(plain_text)
-    experimental_condition = synthesis_condition(plain_text, paragraphs)
-    print (experimental_condition)
-    # print(text_2_paragraphs(plain_text))
+    experimental_condition = synthesis_condition(plain_text)
+    return name, experimental_condition
 
 
-# for html_file in html_files:
-#     compile_synthesis_condition(html_file)
+# html_files = glob.glob('../test/Test3.html')
 
 
-# # condition_extraction(tokens, doc)
-# # print(solvents_in_text(tokens))
-# # print(metals_in_text(tokens))
+def run_condition_extraction(html_files):
+    '''
+    function that takes an html file and create a database containing 
+    extracted synthesis conditions
+    '''
+    synthesis_data = {}
+    for html_file in html_files:
+        try:
+            name, experimental_condition = compile_synthesis_condition(
+                html_file)
+        except:
+            pass
+        synthesis_data[name] = experimental_condition
+
+    filetyper.write_json(synthesis_data, '../db/synthesis_data.json')
+    return
+
+
+# run_condition_extraction(html_files)
