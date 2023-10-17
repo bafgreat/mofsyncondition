@@ -5,7 +5,6 @@ description = "Tool for extracting synthesis condition of MOFs"
 authors = ["Dinga Wonanke"]
 license = "MIT"
 readme = "README.md"
-
 [tool.poetry.dependencies]
 python = ">=3.8,<4.0"
 spacy = "3.6.1"

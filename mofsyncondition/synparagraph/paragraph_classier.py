@@ -358,7 +358,7 @@ def spacy_synethesis_model(training_data, test_data, number_of_iteration=40):
     return
 
 
-def bow_paragraph_classifier(text_data_path, model_key='LR', vectorize_key="CV"):
+def bow_paragraph_classifier(text_data_path, model_key, vectorize_key):
     '''
     A simple function for sentoiment analysis to extract the paragraphs that
     are describing the synthesis conditions.
@@ -424,17 +424,25 @@ def bow_paragraph_classifier(text_data_path, model_key='LR', vectorize_key="CV")
             print(
                 f"precision = {model_evaluation.precision( y_true, prediction)}", file=f_writer)
             print('', file=f_writer)
-    data = {f'synpar_{model_key}_{vectorize_key}_model': vectorizer}
-    append_pickle(data, '../models/vectorizer.pkl')
+    data = {f'{model_key}_{vectorize_key}': vectorizer}
+    append_pickle(data, f'../models/vectorizers/{model_key}_{vectorize_key}.pkl')
     model_evaluation.confusion_matrix(
         y_true, prediction,  model_key, vectorize_key)
     save_pickle(
-        model, f'../models/synpar_{model_key}_{vectorize_key}_model.pkl')
+        model, f'../models/ml_models/{model_key}_{vectorize_key}_model.pkl')
     return
 
 
 file_path = '../db/csv/Training_data_for_sentiment_analysis.xlsx'
-bow_paragraph_classifier(file_path, model_key='LR', vectorize_key="CV")
-bow_paragraph_classifier(file_path, model_key='NB', vectorize_key="tfv")
-bow_paragraph_classifier(file_path, model_key='LR', vectorize_key="tfv")
-bow_paragraph_classifier(file_path, model_key='NB', vectorize_key="CV")
+bow_paragraph_classifier(file_path, 'LR', "tfv")
+bow_paragraph_classifier(file_path, 'LR', "CV")
+bow_paragraph_classifier(file_path, 'NB', "tfv")
+bow_paragraph_classifier(file_path, 'NB', "CV")
+bow_paragraph_classifier(file_path, 'SVM', "tfv")
+bow_paragraph_classifier(file_path, 'SVM', "CV")
+bow_paragraph_classifier(file_path, 'DT', "tfv")
+bow_paragraph_classifier(file_path, 'DT', "CV")
+bow_paragraph_classifier(file_path, 'RF', "tfv")
+bow_paragraph_classifier(file_path, 'RF', "CV")
+bow_paragraph_classifier(file_path, 'NN', "tfv")
+bow_paragraph_classifier(file_path,'NN', "CV")

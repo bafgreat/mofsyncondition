@@ -5,6 +5,7 @@ __status__ = "production"
 from sklearn import metrics
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 
 def accuracy(y_true, y_pred, standard=True):
@@ -152,12 +153,18 @@ def confusion_matrix(y_true, y_pred, model_key='LR', vector_key='CV'):
     y_predict: list of predicted values
     '''
     c_m = metrics.confusion_matrix(y_true, y_pred)
-    plt.figure(figsize=(10, 10))
-    c_map = sns.cubehelix_palette(
-        50, hue=0.05, rot=0, light=0.9, dark=0, as_cmap=True)
+    fig, ax = plt.subplots(figsize=(12, 8))
+    sns.heatmap(np.eye(2), annot=c_m, fmt='g', annot_kws={'size': 50},
+            cmap=sns.color_palette(['#F1C40F', '#2E86C1'], as_cmap=True), cbar=False,
+            yticklabels=['True', 'False'], xticklabels=['False', 'True'], ax=ax)
     sns.set(font_scale=2.5)
-    sns.heatmap(c_m, annot=True, cmap=c_map, cbar=False)
+    ax.tick_params(axis='both', which='major', labelsize=20)
     plt.ylabel('Actual Labels', fontsize=20)
     plt.xlabel('Predicted Labels', fontsize=20)
+    additional_texts = ['(True Negative)', '(False Positive)', '(False Negative)', '(True Positive)']
+    for text_elt, additional_text in zip(ax.texts, additional_texts):
+        ax.text(*text_elt.get_position(), '\n' + additional_text, color=text_elt.get_color(),
+                ha='center', va='top', size=24)
+    plt.tight_layout()
     plt.savefig(
-        f'confusion_matrix_{model_key}_{vector_key}.png',  dpi=600, bbox_inches='tight')
+        f'../evaluation/confusion-matrix_{model_key}-{vector_key}.png',  dpi=800, bbox_inches='tight')

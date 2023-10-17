@@ -2,6 +2,7 @@
 from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
+import os
 import pickle
 import csv
 import json
@@ -48,17 +49,22 @@ def append_json(new_data, filename):
     '''
     append a new data in an existing json file 
     '''
+    if not os.path.exists(filename):
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write('{}')
+    elif os.path.getsize(filename) == 0:
+        with open(filename, 'w', encoding='utf-8') as file:
+            file.write('{}')
     with open(filename, 'r+', encoding='utf-8') as file:
         # First we load existing data into a dict.
         file_data = json.load(file)
-        # Join new_data with file_data inside emp_details
+        # Overwrite existing keys with new_data
         file_data.update(new_data)
         # Sets file's current position at offset.
         file.seek(0)
         # convert back to json.
         json.dump(file_data, file, indent=4, sort_keys=True)
-
-
+        
 def read_json(file_name):
     '''
     load a json file
@@ -118,8 +124,8 @@ def append_pickle(new_data, filename):
     append to a pickle file
     '''
     with open(filename, 'ab') as f_:
-        # append the new data to the file
         pickle.dump(new_data, f_)
+    f_.close()
 
 
 def pickle_load(filename):

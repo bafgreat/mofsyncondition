@@ -13,8 +13,8 @@ def solvents_regex():
     """
     solvent_list = [
         'THF', 'acetone', 'acetone', 'chloroform' + 'chloroform', 'methanol',
-        'methanol', 'pyridine', 'pyridine', 'DMSO', 'dimethylsulfoxide', 'dimethylsulfoxide',
-        'MeOH', 'MeOH', 'tetrachloroethane', '2,2,2-Trifluorethanol', 'KOH',
+        'pyridine', 'DMSO', 'dimethylsulfoxide',
+        'MeOH', 'tetrachloroethane', '2,2,2-Trifluorethanol', 'KOH',
         'tetrachloroethane', '1,1,2,2-tetrachloroethane', 'tetrachloroethane',
         '1-butanol', '1-butylimidazole', '1-cyclohexanol', '1-decanol', '1-heptanol', '1-hexanol',
         '1-octanol', '1-pentanol', '1-phenylethanol', '1-propanol',
@@ -31,34 +31,30 @@ def solvents_regex():
         'acetonitrile', 'acetononitrile', 'AcOEt', 'AcOH', 'AgNO3', 'aniline', 'anisole',
         'benzonitrile', 'benzylalcohol', 'bromoform', 'Bu2O', 'Bu4NBr', 'Bu4NClO4',
         'Bu4NPF6', 'BuCN', 'BuOH', 'butan-1-ol', 'butan-2-ol', 'butan-2-one', 'butane',
-        'butanol', 'butanone', 'butene', 'butyl' + 'acetonitrile',
-        'butyl' + 'alcohol', 'butyl amine', 'butylchloride', 'butylimidazole',
+        'butanol', 'butanone', 'butene', 'butylacetonitrile',
+        'butylalcohol', 'butyl amine', 'butylchloride', 'butylimidazole',
         'butyronitrile', 'c-hexane', 'carbon disulfide', 'carbon tetrachloride',
         'chlorobenzene', 'chloroform', 'chloromethane', 'chlorotoluene', 'CHX', 'cumene',
-        'cyclohexane', 'cyclohexanol', 'cyclopentyl' +
-        'methylether', 'DCE', 'DCM', 'decalin',
-        'decan-1-ol', 'decane', 'decanol', 'DEE', 'di-isopropyl' + 'ether',
-        'di-n-butyl' + 'ether', 'di-n-hexyl' +
-        'ether', 'dibromoethane', 'dibutoxymethane',
-        'dibutyl' + 'ether', 'dichloro-methane', 'dichlorobenzene', 'dichloroethane',
-        'dichloromethane', 'diethoxymethane', 'diethyl' + 'carbonate', 'diethyl' + 'ether',
+        'cyclohexane', 'cyclohexanol', 'cyclopentylmethylether', 'DCE', 'DCM', 'decalin',
+        'decan-1-ol', 'decane', 'decanol', 'DEE', 'di-isopropylether',
+        'di-n-butyl' + 'ether', 'di-n-hexylether', 'dibromoethane', 'dibutoxymethane',
+        'dibutylether', 'dichloro-methane', 'dichlorobenzene', 'dichloroethane',
+        'dichloromethane', 'diethoxymethane', 'diethyl' + 'carbonate', 'diethylether',
         'diethylamine', 'diethylether', 'diglyme', 'dihexyl ether', 'diiodomethane',
-        'diisopropyl' + 'ether', 'diisopropylamine', 'dimethoxyethane', 'dimethoxymethane',
+        'diisopropylether', 'diisopropylamine', 'dimethoxyethane', 'dimethoxymethane',
         'dimethyl' + 'acetamide', 'dimethylacetimide', 'dimethylbenzene',
         'dimethylcarbonate', 'dimethylformamide', 'dimethylsulfoxide', 'dimethylacetamide',
         'dimethylbenzene', 'dimethylformamide', 'dimethylformanide', 'dimethylsulfoxide',
-        'dioctylsodium sulfosuccinate', 'dioxane', 'dioxolane', 'dipropylether', 'DMAc', 'DMF', 'DMSO', 'Et2O',
-        'EtAc', 'EtAcO', 'EtCN', 'ethane' + 'diol', 'ethane-1,2-diol', 'ethanol',
-        'ethyl' + '(S)-2-hydroxypropanoate', 'ethyl' +
-                    'acetate', 'ethyl' + 'benzoate',
-        'ethyl' + 'formate', 'ethyl' + 'lactate', 'ethyl' + 'propionate', 'ethylacetamide',
-        'ethylacetate', 'ethylene' + 'carbonate', 'ethylene' + 'glycol', 'ethyleneglycol',
+        'dioctylsodium sulfosuccinate', 'dioxane', 'dioxolane', 'dipropylether', 'DMAc',
+        'DMF', 'DMSO', 'Et2O', 'EtAc', 'EtAcO', 'EtCN', 'ethane' + 'diol', 'ethane-1,2-diol',
+        'ethanol', 'ethyl(S)-2-hydroxypropanoate', 'ethylacetate', 'ethylbenzoate',
+        'ethylformate', 'ethyllactate', 'ethylpropionate', 'ethylacetamide',
+        'ethylacetate', 'ethylene' + 'carbonate', 'ethyleneglycol', 'ethyleneglycol',
         'ethylhexan-1-ol', 'EtOAc', 'EtOH', 'eucalyptol', 'F3-ethanol', 'F3-EtOH', 'formamide',
-        'formic' + 'acid', 'glacial' + 'acetic' + 'acid', 'glycerol', 'H2O', 'H2O2',
-        'H2SO4', 'HBF4', 'HCl', 'HClO4', 'HCO2H', 'HCONH2', 'heptan-1-ol',
-        'heptane', 'heptanol', 'heptene', 'HEX', 'hexadecylamine', 'hexafluoroisopropanol',
-        'hexafluoropropanol', 'hexan-1-ol', 'hexane', 'hexanes', 'hexanol', 'hexene',
-        'hexyl' + 'ether', 'HFIP', 'HFP', 'HNO3', 'hydrochloric' + 'acid',
+        'glycerol', 'H2O', 'H2O2', 'H2SO4', 'HBF4', 'HCl', 'HClO4', 'HCO2H', 'HCONH2',
+        'heptan-1-ol', 'heptane', 'heptanol', 'heptene', 'HEX', 'hexadecylamine',
+        'hexafluoroisopropanol', 'hexafluoropropanol', 'hexan-1-ol', 'hexane', 'hexanes',
+        'hexanol', 'hexene', 'hexyl' + 'ether', 'HFIP', 'HFP', 'HNO3', 'hydrochloric acid',
         'hydrogen peroxide', 'iodobenzene', 'isohexane', 'isooctane', 'isopropanol',
         'isopropylbenzene', 'ligroine', 'limonene', 'Me-THF', 'Me2CO',
         'MeCN', 'MeCO2Et', 'MeNO2', 'MeOH', 'mesitylene', 'methanamide', 'methanol',
@@ -74,7 +70,8 @@ def solvents_regex():
         'methyltetrahydrofuran', 'MIBK', 'morpholine', 'mTHF', 'n-butanol',
         'n-butyl' + 'acetate', 'n-decane', 'n-heptane', 'n-HEX', 'n-hexane', 'n-methylformamide',
         'n-methylpyrrolidone', 'n-nonane', 'n-octanol', 'n-pentane', 'n-propanol',
-        'n,n-dimethylacetamide', 'n,n-dimethylformamide', 'N,N-dimethylformamide', 'n,n-DMF', 'NaOH', 'nBu4NBF4', 'nitric' + 'acid',
+        'n,n-dimethylacetamide', 'n,n-dimethylformamide', 'N,N-dimethylformamide', 'n,n-DMF',
+        'NaOH', 'nBu4NBF4', 'nitric acid',
         'nitrobenzene', 'nitromethane', 'nonane', 'nujol', 'o-dichlorobenzene', 'o-xylene',
         'octan-1-ol', 'octane', 'octanol', 'octene', 'ODCB', 'p-xylene', 'pentan-1-ol', 'pentane',
         'pentanol', 'pentanone', 'pentene', 'PeOH', 'perchloric acid', 'PhCH3', 'PhCl', 'PhCN',
@@ -83,7 +80,7 @@ def solvents_regex():
         'phosphate buffered saline', 'pinane', 'piperidine', 'polytetrafluoroethylene',
         'propan-1-ol', 'propan-2-ol', 'propane', 'propane-1,2-diol', 'propane-1,2,3-triol',
         'propanol', 'propene', 'propionic acid', 'propionitrile',
-        'propylacetate', 'propylamine', 'propylene' + 'carbonate',
+        'propylacetate', 'propylamine', 'propylene carbonate',
         'propyleneglycol', 'pyridine', 'pyrrolidone', 'quinoline',
         'sodium hydroxide', 'sodium perchlorate', 'sulfuric acid', 't-butanol',
         'tert-butanol', 'tert-butyl alcohol', 'tetrabutylammonium hexafluorophosphate',
@@ -98,117 +95,84 @@ def solvents_regex():
         'xylene', 'xylol', 'N,N-diethylformamide',
         '[nBu4N][BF4]', 'BCN', 'ACN', 'BTN', 'BHDC', 'AOT', 'DMA',
         'MOPS',  'MES', 'heavy water', 'IPA',
-        'TBP', 'TEA', 'DEF', 'DMA', 'CCl4'
+        'TBP', 'TEA', 'DEF', 'DMA', 'CCl4', 'potassium hydroxide', 'sodium hydroxide',
+        'calcium hydroxide', 'methyl pyrrolidinone', 'ethyl lactate',
+        'methyl pyrrolidin-2-one', 'benzene', 'C2H4Cl2', 'HEPES', 'EtOD',
+        'CH3Ph', 'methyl benzene', 'PBS', 'trifluoroethanol ', 'CDCl3', 'methyl propan-2-ol',
+        'ethylene glycol', 'CH3Cl', 'ethane diol', 'TEAP', 'CD3OD', 'propylene glycol', 'C2H5CN',
+        'TBAOH', 'methyl propionate', 'methyl laurate', 'Cl2CH2', 'isopropyl benzene', 'CH3SOCH3',
+        'CHCl2', 'C2D5CN', '(CH3)2CHOH', 'PrOH', 'glacial acetic acid', 'C5H5N', 'CD3COCD3',
+        'butyl chloride', 'CD3SOCD3', 'KBr', 'methyl tetrahydrofuran', 'silver nitrate',
+        'dimethyl formamide', 'NMP', 'C7D8', 'C6D6', 'methyl cyclohexane', 'methyl naphthalene',
+        'PrCN', 'propyl acetate', 'CH3COCH3', 'di-isopropyl ether', '1-methylethyl acetate',
+        'C6H6', 'methyl methanoate', 'benzyl alcohol', 'CH3COOH', 'ethylene carbonate',
+        'NaClO4', 'potassium phosphate buffer', 'ethyl (S)-2-hydroxypropanoate', 'dimethyl ether',
+        '2-methyl tetrahydrofuran', 'C6H5CH3', 'methyl butane', 'CH3OD', 'CHCl3', '(CDCl2)2',
+        'dimethyl carbonate', 'dipropyl ether', 'HFIP,', 'TX-100', 'tri-n-butyl phosphate', 'LiCl',
+        'CH3C6H5', 'CH2Cl2', 'di-n-butyl ether', '(CH3)2NCOH', 'n-butyl acetate',
+        'dimethyl benzene', 'ClCH2CH2Cl', 'CH3NHCOH', 'diethyl carbonate', 'CH3CN', 'C6H12', 'C7H8',
+        'NaCl', 'TBAH', 'NaHCO3', 'dimethyl acetimide', 'TBAP', 'CH3OH', 'butyl imidazole',
+        'dioctyl sodium sulfosuccinate', 'potassium bromide', 'butyl acetonitrile', 'TBABF4',
+        'diethyl ether', 'methyl ethyl ketone', 'methyl t-butyl ether', 'CH3NO2',
+        'propyl amine', 'diisopropyl ether', 'D2O', 'ethyl formate', 'methyl formate',
+        'tin dioxide', 'methyl acetamide', 'MCH', 'THF-d8', 'CD3CN', '(CH3)2CO', 'titanium dioxide',
+        'ethyl propionate', 'dimethyl acetamide', 'dibutyl ether', 'H2O + TX', 'dimethyl sulfoxide',
+        'CD2Cl2', 'methyl pyrrolidine', 'C2H5OH', 'butyl alcohol', 'TEOA', '(CD3)2CO',
+        'methylene chloride', 'SDS', 'KPB', 'TBAF', 'ethyl acetate', 'SNO2', 'methyl propan-1-ol',
+        'C6H14', 'methyl acetoacetate', 'butyl acetate', 'MeOD', 'hexyl ether',
+        'cyclopentyl methyl ether', 'NPA', 'ethyl benzoate', '2-propyl acetate',
+        'Na2SO4', 'C6H5Cl', 'methyl formamide', 'CH3CO2H', 'methyl pentane', 'TBAPF6',
+        'H2O-Triton X', 'CH2ClCH2Cl', 'sodium chloride', 'Triton X-100', 'HDA',
+        'di-n-hexyl ether', 'potassium iodide', 'potassium bromide', 'potassium chloride',
+        'potassium floride', 'KI', 'KF', 'KCl', 'KBr' 'sodium iodide', 'sodium bromide',
+        'sodium chloride', 'sodium floride', 'NaI', 'NaF', 'NaCl', 'NaBr'
     ]
     solvent_name_options = list(set(solvent_list))
-    # solvent_name_options = [r"\b" + name + r"\s" for name in solvent_name_options]
-    # map(re.compile, solvent_name_options)
-    solvent_name_reg = "|".join(solvent_name_options)
-    pattern = re.compile(solvent_name_reg)
-    return solvent_name_options
-
-
-def solvents2_regex():
-    solvent_list = ['(CD3)2CO', '(CDCl2)2', '(CH3)2CHOH', '(CH3)2CO', '(CH3)2NCOH', '[nBu4N][BF4]', '1-butanol',
-                    '1-butylimidazole', '1-cyclohexanol', '1-decanol', '1-heptanol', '1-hexanol', '1-methylethyl acetate',
-                    '1-octanol', '1-pentanol', '1-phenylethanol', '1-propanol', '1-undecanol', '1,1,1-trifluoroethanol',
-                    '1,1,1,3,3,3-hexafluoro-2-propanol', '1,1,1,3,3,3-hexafluoropropan-2-ol', '1,1,2-trichloroethane',
-                    '1,2-c2h4cl2', '1,2-dichloroethane', '1,2-dimethoxyethane', '1,2-dimethylbenzene', '1,2-ethanediol',
-                    '1,2,4-trichlorobenzene', '1,4-dimethylbenzene', '1,4-dioxane', '2-(n-morpholino)ethanesulfonic acid',
-                    '2-butanol', '2-butanone', '2-me-thf', '2-methf', '2-methoxy-2-methylpropane', '2-methyl tetrahydrofuran',
-                    '2-methylpentane', '2-methylpropan-1-ol', '2-methylpropan-2-ol', '2-methyltetrahydrofuran', '2-proh',
-                    '2-propanol', '2-propyl acetate', '2-pyrrolidone', '2,2,2-trifluoroethanol', '2,2,4-trimethylpentane',
-                    '2Me-THF', '2MeTHF', '3-methyl-pentane', '4-methyl-1,3-dioxolan-2-one', 'acetic acid', 'aceto-nitrile',
-                    'acetone', 'acetonitrile', 'acetononitrile', 'ACN', 'AcOEt', 'AcOH', 'AgNO3', 'aniline', 'anisole', 'AOT',
-                    'BCN', 'benzene', 'benzonitrile', 'benzyl alcohol', 'BHDC', 'bromoform', 'BTN', 'Bu2O', 'Bu4NBr',
-                    'Bu4NClO4', 'Bu4NPF6', 'BuCN', 'BuOH', 'butan-1-ol', 'butan-2-ol', 'butan-2-one', 'butane', 'butanol',
-                    'butanone', 'butene', 'butyl acetate', 'butyl acetonitrile', 'butyl alcohol', 'butyl amine',
-                    'butyl chloride', 'butyl imidazole', 'butyronitrile', 'c-hexane', 'C2D5CN', 'C2H4Cl2', 'C2H5CN', 'C2H5OH',
-                    'C5H5N', 'C6D6', 'C6H12', 'C6H14', 'C6H5CH3', 'C6H5Cl', 'C6H6', 'C7D8', 'C7H8', 'carbon disulfide',
-                    'carbon tetrachloride', 'CCl4', 'CD2Cl2', 'CD3CN', 'CD3COCD3', 'CD3OD', 'CD3SOCD3', 'CDCl3', 'CH2Cl2',
-                    'CH2ClCH2Cl', 'CH3C6H5', 'CH3Cl', 'CH3CN', 'CH3CO2H', 'CH3COCH3', 'CH3COOH', 'CH3NHCOH', 'CH3NO2',
-                    'CH3OD', 'CH3OH', 'CH3Ph', 'CH3SOCH3', 'CHCl2', 'CHCl3', 'chlorobenzene', 'chloroform', 'chloromethane',
-                    'chlorotoluene', 'CHX', 'Cl2CH2', 'ClCH2CH2Cl', 'cumene', 'cyclohexane', 'cyclohexanol', 'cyclopentyl methyl ether',
-                    'D2O', 'DCE', 'DCM', 'decalin', 'decan-1-ol', 'decane', 'decanol', 'DEE', 'di-isopropyl ether',
-                    'di-n-butyl ether', 'di-n-hexyl ether', 'dibromoethane', 'dibutoxymethane', 'dibutyl ether',
-                    'dichloro-methane', 'dichlorobenzene', 'dichloroethane', 'dichloromethane', 'diethoxymethane',
-                    'diethyl carbonate', 'diethyl ether', 'diethylamine', 'diethylether', 'diglyme', 'dihexyl ether',
-                    'diiodomethane', 'diisopropyl ether', 'diisopropylamine', 'dimethoxyethane', 'dimethoxymethane',
-                    'dimethyl acetamide', 'dimethyl acetimide', 'dimethyl benzene', 'dimethyl carbonate', 'dimethyl ether',
-                    'dimethyl formamide', 'dimethyl sulfoxide', 'dimethylacetamide', 'dimethylbenzene', 'dimethylformamide',
-                    'dimethylformanide', 'dimethylsulfoxide', 'dioctyl sodium sulfosuccinate', 'dioxane', 'dioxolane',
-                    'dipropyl ether', 'DMA', 'DMAc', 'DMF', 'DMSO', 'Et2O', 'EtAc', 'EtAcO', 'EtCN', 'ethane diol',
-                    'ethane-1,2-diol', 'ethanol', 'ethyl (S)-2-hydroxypropanoate', 'ethyl acetate', 'ethyl benzoate',
-                    'ethyl formate', 'ethyl lactate', 'ethyl propionate', 'ethylacetamide', 'ethylacetate', 'ethylene carbonate',
-                    'ethylene glycol', 'ethyleneglycol', 'ethylhexan-1-ol', 'EtOAc', 'EtOD', 'EtOH', 'eucalyptol', 'F3-ethanol',
-                    'F3-EtOH', 'formamide', 'formic acid', 'glacial acetic acid', 'glycerol', 'H2O', 'H2O + TX', 'H2O-Triton X',
-                    'H2O2', 'H2SO4', 'HBF4', 'HCl', 'HClO4', 'HCO2H', 'HCONH2', 'HDA', 'heavy water', 'HEPES', 'heptan-1-ol',
-                    'heptane', 'heptanol', 'heptene', 'HEX', 'hexadecylamine', 'hexafluoroisopropanol', 'hexafluoropropanol',
-                    'hexan-1-ol', 'hexane', 'hexanes', 'hexanol', 'hexene', 'hexyl ether', 'HFIP,', 'HFP', 'HNO3',
-                    'hydrochloric acid', 'hydrogen peroxide', 'iodobenzene', 'IPA', 'isohexane', 'isooctane', 'isopropanol',
-                    'isopropyl benzene', 'KBr', 'KPB', 'LiCl', 'ligroine', 'limonene', 'MCH', 'Me-THF', 'Me2CO', 'MeCN',
-                    'MeCO2Et', 'MeNO2', 'MeOD', 'MeOH', 'MES', 'mesitylene', 'methanamide', 'methanol', 'MeTHF',
-                    'methoxybenzene', 'methoxyethylamine', 'methyl acetamide', 'methyl acetoacetate', 'methyl benzene',
-                    'methyl butane', 'methyl cyclohexane', 'methyl ethyl ketone', 'methyl formamide', 'methyl formate',
-                    'methyl isobutyl ketone', 'methyl laurate', 'methyl methanoate', 'methyl naphthalene', 'methyl pentane',
-                    'methyl propan-1-ol', 'methyl propan-2-ol', 'methyl propionate', 'methyl pyrrolidin-2-one',
-                    'methyl pyrrolidine', 'methyl pyrrolidinone', 'methyl t-butyl ether', 'methyl tetrahydrofuran',
-                    'methyl-2-pyrrolidone', 'methylbenzene', 'methylcyclohexane', 'methylene chloride', 'methylformamide',
-                    'methyltetrahydrofuran', 'MIBK', 'morpholine', 'mTHF', 'n-butanol', 'n-butyl acetate', 'n-decane',
-                    'n-heptane', 'n-HEX', 'n-hexane', 'n-methylformamide', 'n-methylpyrrolidone', 'n-nonane', 'n-octanol',
-                    'n-pentane', 'n-propanol', 'n,n-dimethylacetamide', 'n,n-dimethylformamide', 'n,n-DMF', 'Na2SO4', 'NaCl',
-                    'NaClO4', 'NaHCO3', 'NaOH', 'KOH', 'nBu4NBF4', 'nitric acid', 'nitrobenzene', 'nitromethane', 'NMP', 'nonane',
-                    'NPA', 'nujol', 'o-dichlorobenzene', 'o-xylene', 'octan-1-ol', 'octane', 'octanol', 'octene', 'ODCB',
-                    'p-xylene', 'PBS', 'pentan-1-ol', 'pentane', 'pentanol', 'pentanone', 'pentene', 'PeOH', 'perchloric acid',
-                    'PhCH3', 'PhCl', 'PhCN', 'phenoxyethanol', 'phenyl acetylene', 'Phenyl ethanol', 'phenylamine',
-                    'phenylethanolamine', 'phenylmethanol', 'PhMe', 'phosphate', 'phosphate buffered saline', 'pinane',
-                    'piperidine', 'polytetrafluoroethylene', 'potassium bromide', 'potassium phosphate buffer', 'PrCN', 'PrOH',
-                    'propan-1-ol', 'propan-2-ol', 'propane', 'propane-1,2-diol', 'propane-1,2,3-triol', 'propanol', 'propene',
-                    'propionic acid', 'propionitrile', 'propyl acetate', 'propyl amine', 'propylene carbonate',
-                    'propylene glycol', 'pyridine', 'pyrrolidone', 'quinoline', 'SDS', 'silver nitrate', 'SNO2',
-                    'sodium chloride', 'sodium hydroxide', 'sodium perchlorate', 'sulfuric acid', 't-butanol', 'TBABF4', 'TBAF',
-                    'TBAH', 'TBAOH', 'TBAP', 'TBAPF6', 'TBP', 'TEA', 'TEAP', 'TEOA', 'tert-butanol', 'tert-butyl alcohol',
-                    'tetrabutylammonium hexafluorophosphate', 'tetrabutylammonium hydroxide', 'tetrachloroethane',
-                    'tetrachloroethylene', 'tetrachloromethane', 'tetrafluoroethylene', 'tetrahydrofuran', 'tetralin',
-                    'tetramethylsilane', 'tetramethylurea', 'tetrapiperidine', 'TFA', 'TFE', 'THF', 'THF-d8', 'tin dioxide',
-                    'titanium dioxide', 'toluene', 'tri-n-butyl phosphate', 'triacetate', 'triacetin', 'tribromomethane',
-                    'tributyl phosphate', 'trichlorobenzene', 'trichloroethene', 'trichloromethane', 'triethyl amine',
-                    'triethyl phosphate', 'triethylamine', 'trifluoroacetic acid', 'trifluoroethanol', 'trifluoroethanol ',
-                    'trimethyl benzene', 'trimethyl pentane', 'tris', 'Triton X-100', 'TX-100', 'undecan-1-ol', 'undecanol',
-                    'valeronitrile', 'water', 'xylene', 'xylol'
-                    ]
     prefixes = ['iso', 'tert', 'sec', 'ortho', 'meta', 'para', 'meso']
     solvent_re = re.compile(r'(?:^|\b)(?:(?:%s|d\d?\d?|[\dn](?:,[\dn]){0,3}|[imnoptDLRS])-?)?(?:%s)(?:-d\d?\d?)?(?=$|\b)'
                             % ('|'.join(re.escape(s) for s in prefixes),
-                               '|'.join(re.escape(s).replace(r'\ ', r'[\s\-]?') for s in solvent_list)))
-    return solvent_re
+                               '|'.join(re.escape(s).replace(r'\ ', r'[\s\-]?') for s in solvent_name_options)))
+    # solvent_name_reg = "|".join(solvent_name_options)
+    # pattern = re.compile(solvent_name_reg)
+    return solvent_name_options
 
 
 def mof_regex():
     re_MOF1 = '^(?![aA-zZ]+\-?\d?\d?\-like)(?![aA-zZ]+\-?\d?\d?\-type(s?))(ZJU|SNU|MAF|MCF|Ir-MOF|JUC|FJI|UHM|MUV|BUT|ZJNU|Tb|she|CTH|pek|FDM|MODF|USF|NJFU|ZJU|CMOF|CTH|TPMOF|IZE|pbz|PNMOF|gea|MFM|UNLPF|PIZOF|soc|MOAAF|Y|Ho|CPO|JLU|aea|NOTT|NU|MMPF|UTSA|CPM|U[iI]O|MOF|IRMOF|T-MOF|NTU|MIL|HKUST|HNUST|LIC|PCN|ZIF|CPL|CALF|UMCM|DUT)[:;\[\]\)\{\}\]{0,3}[\-‐‑⁃‒–—―−－⁻][A-Za-z0-9_-]+[:;\[\]\)\{\}\]{0,3}[A-Za-z0-9_-]*[:;\[\]\)\{\}\]{0,3}[A-Za-z0-9_-]*[:;\[\]\)\{\}\]{0,3}[A-Za-z0-9_-]*[:;\[\]\)\{\}\]{0,3}[A-Za-z0-9_-]+$'
     re_MOF2 = '^(ZJU|SNU|MAF|MCF|Ir-MOF|JUC|FJI|UHM|MUV|BUT|ZJNU|Tb|she|CTH|pek|FDM|MODF|USF|NJFU|ZJU|CMOF|CTH|TPMOF|IZE|pbz|PNMOF|gea|MFM|UNLPF|PIZOF|soc|MOAAF|Y|Ho|CPO|JLU|aea|NOTT|NU|UTSA|MMPF|CPM|U[iI]O|MOF|T-MOF|IRMOF|NTU|MIL|HKUST|HNUST|LIC|PCN|ZIF|CPL|CALF|UMCM|DUT)([\-‐‑⁃‒–—―−－⁻])([a-zA-Z0-9]+)$'
     re_chemical_formula = '^(?![aA-zZ]+\-?\d?\d?\-ligands)(?!(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\d\(CO2\)\d?\(?N?N?\)?)(?!^(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\($)(?!(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\(CH3COO\)\d\s?\d?H?2?O?)(?!M1)(?!(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\dAs\dO\d)(?!(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\d\(μ3-OH\)\d\(CO2\)\d)(?!\[?Zn\d\(μ4-O\)\(O2CR?\)\d\])(?!\[?(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\((AcO|OAc)\)\d?\s?H?2?O?)(?!Me\dNH\d)(?!(\[?Zn\dO?\(O2C))(?!^M\(II\))(?!.*\(OOC\)\d$)(?!Co\(Tt\)\d?$)(?!.*\(COO−?\)\d$)(?!(M|Mn|Cu|Zn|Y|Co|Ni|Fe|Zr|Cd)\((II|i|ii|iii)\)$)(?!\[?(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\d?O?\(CO2\)\d\]?$)(?!(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\dO?\+?.?.?.?$)(?!UiO-type$)(?!\[?(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\(NO\d?\)\d?\]?.?.?.?.?.?.?.?$)(?!\[?(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)\(ClO\d?\)\d?\]?.?.?.?.?.?.?.?$)(?!Cu\(NO\d?\).?.?.?.?.?.?.?.?$)(?!\[Zn3\(EBTC\)2\]∞$)(?!\{?Cu\d\(O2?CR\)\d\}?$)(?!HCl$)(?!Cu\(II\)$)(?!Zr6O8\(CH3COO\)26\+$)(?!Cu\(NO3\)2·3H2O$)(?!Zr6$)(?!Cu\(NO3\)2$)(\[?)(\{)?(\[)?(Mg|M|Ni|Zn|Mn|Cu|Zr|Me|CoCl|Co|Cd)(\s?)(L|\d|\(|\-)'
-    patterns = "|".join([re_MOF1, re_MOF2, re_chemical_formula])
+    formular_with_L_and_n = r"\b\w*\d*\((?:L|n|∞)\)\d*\b"
+    patterns = "|".join(
+        [re_MOF1, re_MOF2, re_chemical_formula, formular_with_L_and_n])
     return re.compile(patterns, flags=0)
 
 
 def metal_salts_formular():
-    base_metal = ['Zn', 'Mn', 'Cu', 'Fe', 'Al', 'Cd', 'Zr', 'Co', 'Mg', 'V', 'Ca',
-                  'Ti', 'Pb', 'Ni', 'Na', 'Sc', 'Cr', 'Y', 'Nb', 'Mo', 'Ga', 'Ge',
-                  'Ta', 'Re', 'Os', 'Rb', 'Re', 'Hf', 'Ir', 'Pt', 'Au', 'Rf', 'Db',
-                  'Sg', 'Bh', 'Hs']
+    base_metal = ['Mg', 'Al', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn',
+                  'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Y', 'Zr', 'Nb', 'Mo',
+                  'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'Hf', 'Ta', 'W', 'Re', 'Os',
+                  'Ir', 'Pt', 'Au', 'Hg', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Rb',
+                  'Sr', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Sm', 'Eu', 'Gd',
+                  'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu']
     prefix = '^'
-    # suffix = '([HBCNOFSPI0-9\[\]\(\)])\w*'
-    suffix = '([A-Za-z*0-9\[\]\(\)])(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)\w*'
-    list_of_formulars = [prefix+metal+suffix for metal in base_metal]
+    suffix = r'(\((?:[IVX]+|\d+)\))?(\w+)\)?(\d*)'
+    list_of_formulars = [prefix+metal +
+                         suffix for metal in base_metal if metal not in ['Zn']]
     metal_formulars = '|'.join(list_of_formulars)
-
-    name_pattern = r'\b([Mm]olybdenum|[Nn]iobium|[Yy]ttrium|[Cc]hromium|[Ss]candium|[Ss]odium|[Nn]ickel|[Ll]ead|[Tt]itanium|[Zz]inc|[Mm]anganese|[Vv]anadium|[Mm]agnesium|[Cc]opper|[Ii]ron|[Ff]errous|[Aa]lumin(ium|um|o)|[Cc]admium|[Zz]irconium|[Cc]obalt)\s(\w+)\b'
-
-    # pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
-
-    # '^((Zn|Mn|Cu|Fe|Al|Cd|Zr|Co|Mg|V|Ti|Pb|Ni|Na|Sc|Cr|Y|Nb|Mo)|[Mm]olybdenum|[Nn]iobium|[Yy]ttrium|[Cc]hromium|[Ss]candium|[Ss]odium|[Nn]ickel|[Ll]ead|[Tt]itanium|[Zz]inc|[Mm]anganese|[Vv]anadium|[Mm]agnesium|[Cc]opper|[Ii]ron|[Ff]errous|[Aa]lumin(ium|um|o)|[Cc]admium|[Zz]irconium|[Cc]obalt)(\W|[0-9\+\-A-Z\.ivl\(\)\·\[\\]\\(\\)\\{\\}]+)?$'
-    return re.compile(metal_formulars+'|'+name_pattern)
+    full_names = ['[Mm]olybdenum', '[Nn]iobium', '[Yy]ttrium', '[Cc]hromium',
+                  '[Ss]candium', '[Nn]ickel', '[Ll]ead',
+                  '[Tt]itanium', '[Zz]inc', '[Mm]anganese', '[Vv]anadium',
+                  '[Mm]agnesium', '[Cc]opper', '[Ii]ron', '[Ff]errous',
+                  '[Aa]lumin(ium|um|o)', '[Cc]admium', '[Zz]irconium',
+                  '[Cc]obalt', '[Rr]ubidium', '[Cc]esium',
+                  '[Ff]rancium', '[Gg]old', '[Mm]ercury', '[Hh]assium',
+                  '[Ii]ridium', '[Os]mium', '[Rr]henium', '[Tt]antalum',
+                  '[Hh]afnium', '[Rr]utherfordium', '[Ss]eaborgium',
+                  '[Bb]ohrium', '[Bb]arium', '[lL]anthanium', 'Rubidium',
+                  '[Yy]ttrium', '[Cc]aesium']
+    full_names = '|'.join(full_names)
+    name_pattern = r'\b('+full_names+r')\b'
+    return metal_formulars+'|'+name_pattern
 
 
 def synthetic_method_re():
@@ -237,6 +201,7 @@ def synthetic_method_re():
 def key_words_regex():
     '''
     '''
+    crystalization = [r"[Cc]rystal\w*", r'[Gg]rown', '[gG]row\w*']
     stability = [
         r"[sS]tability",
         r"[sS]table",
@@ -275,7 +240,8 @@ def key_words_regex():
     ]
     stability = re.compile('|'.join(stability))
     analysis = re.compile('|'.join(analysis))
-    return stability,  analysis
+    crystalization = re.compile('|'.join(crystalization))
+    return stability,  analysis, crystalization
 
 
 def method_abbreviation(word):
@@ -341,29 +307,40 @@ def reaction_time_breakdown(react_time, spacy_doc):
     drying = []
     stability = []
     reaction_time = []
-    stability_pattern, analysis_pattern = key_words_regex()
+    crystalization_time = []
+    stability_pattern, analysis_pattern, crystalization = key_words_regex()
     for time in react_time:
+        seen =[]
         value = time['value']
         units = time['units']
-        if time['units'] != 'N/A':
+        if time['units'] != 'N/A' and time['value'] not in ['-', '.', '_', '?', '>', '<', ',', ')', '(', '[', ']']:
             word = value+' '+time['units']
         else:
             word = value + ' '
         sentence = sentence_containing_word(spacy_doc, word)
-        if sentence != None:
+        if sentence != None and value not in seen:
             match = re.search(analysis_pattern, sentence)
             match2 = re.search(stability_pattern, sentence)
-            if match:
+            match3 = re.search(crystalization, sentence)
+            if match3 and value not in seen:
+                time_hrs = convert_time_to_hour(value, units)
+                crystalization_time.append(time_hrs)
+                seen.append(value)
+            elif match and value not in seen:
                 time_hrs = convert_time_to_hour(value, units)
                 drying.append(time_hrs)
-            elif match2:
+                seen.append(value)
+            elif match2 and value not in seen:
                 time_hrs = convert_time_to_hour(value, units)
                 stability.append(time_hrs)
+                seen.append(value)
             else:
-                time_hrs = convert_time_to_hour(value, units)
-                reaction_time.append(time_hrs)
-
-    return reaction_time, stability, drying
+                if value not in seen:
+                    time_hrs = convert_time_to_hour(value, units)
+                    reaction_time.append(time_hrs)
+                    seen.append(value)
+        
+    return reaction_time, stability, drying, crystalization_time
 
 
 def celsius_2_kelvin(temperature):
@@ -386,14 +363,32 @@ def convert_time_to_hour(value, units):
     Function that takes the output of the reaction time and provide time time in 
     hours 
     '''
+    if value in ['-', '.', '_', '?', '>', '<', ',', ')', '(', '[', ']']:
+        return ''
+    time_hrs = {}
+    match = re.search(r'\d+$', value)
+    if match:
+        value = match.group()
+    
     if value == 'overnight':
-        time_hrs = str(24)
+        time_hrs['value'] = [24]
+        time_hrs['flag'] = 'overnight'
     elif units == 'day' or units == 'days' or units == 'd':
-        time_hrs = numbers_to_digit(value) * 24
-    elif units == 'min' or units == 'minutes':
-        time_hrs = round(numbers_to_digit(value)/60.0, 3)
+        time_hrs['value']= [i*24 for i in numbers_to_digit(value)['value']]
+        if len(numbers_to_digit(value)['flag'])> 0:
+           time_hrs['flag'] = numbers_to_digit(value)['flag'] +' '+ 'days'
+        else:
+            time_hrs['flag'] = numbers_to_digit(value)['flag']
+    elif units == 'min' or units == 'minutes' or units == 'm':
+        time_hrs['value']= [round(i/60.0, 3) for i in numbers_to_digit(value)['value']]
+        if len(numbers_to_digit(value)['flag'])> 0:
+           time_hrs['flag'] = numbers_to_digit(value)['flag'] +' '+ 'minutes'
+        else:
+            time_hrs['flag'] = numbers_to_digit(value)['flag']
+        # time_hrs = round(numbers_to_digit(value)/60.0, 3)
     else:
-        time_hrs = float(value)
+        time_hrs['value']= [float(value)]
+        time_hrs['flag']= ''
     return time_hrs
 
 
@@ -421,7 +416,9 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
     stability_temp = []
     reaction_temp = []
     melting_temp = []
-    stability_pattern, analysis_pattern = key_words_regex()
+    crystalization_temp = []
+    seen = []
+    stability_pattern, analysis_pattern, crystalisation_pattern = key_words_regex()
     for temp in reaction_temperature:
         value = temp['value']
         units = temp['units']
@@ -429,9 +426,9 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
             word = value
         elif value == 'RT':
             word = 'room temperature'
-        if value != '-':
+        if value not in ['-', '.', '_', '?', '>', '<', ',']:
             sentence = sentence_containing_word(spacy_doc, word)
-            if sentence != None:
+            if sentence != None and value not in seen:
                 melting_points = re.findall(
                     r"(?i)(?:mp~|melting point|mp)\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?", sentence)
                 melting_points = [
@@ -439,42 +436,86 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
                 if value in melting_points:
                     temp = convert_temp_to_kelvin(value, units)
                     melting_temp.append(temp)
+                    seen.append(value)
                 else:
                     match = re.search(analysis_pattern, sentence)
                     match2 = re.search(stability_pattern, sentence)
-                    if match:
+                    match3 = re.search(crystalisation_pattern, sentence)
+                    if match and value not in seen:
+                        temp = convert_temp_to_kelvin(value, units)
+                        crystalization_temp.append(temp)
+                        seen.append(value)
+                    elif match and value not in seen:
                         temp = convert_temp_to_kelvin(value, units)
                         drying_temp.append(temp)
-                    elif match2:
+                        seen.append(value)
+                    elif match2 and value not in seen:
                         temp = convert_temp_to_kelvin(value, units)
                         stability_temp.append(temp)
+                        seen.append(value)
                     else:
-                        temp = convert_temp_to_kelvin(value, units)
-                        reaction_temp.append(temp)
-    return reaction_temp, stability_temp, drying_temp, melting_temp
+                        if value not in seen:
+                            temp = convert_temp_to_kelvin(value, units)
+                            reaction_temp.append(temp)
+                            seen.append(value)
+    return reaction_temp, stability_temp, drying_temp, melting_temp, crystalization_temp
 
 
 def numbers_to_digit(string):
     digit_numbers = {
-        'one': 1,
-        'two': 2,
-        'three': 3,
-        'four': 4,
-        'five': 5,
-        'six': 6,
-        'seven': 7,
-        'eight': 8,
-        'nine': 9,
-        'ten': 10,
-        'or': 1,
-        'few': 3,
-        'several': 6,
-        'half': 0.5
+        'one': {'value':[1], 'flag':''},
+        'two': {'value':[2],'flag':''},
+        'three': {'value':[3],'flag':''},
+        'four': {'value':[4], 'flag':''},
+        'fours': {'value':[4],'flag':''},
+        'five': {'value':[5],'flag':''},
+        'fives': {'value':[5],'flag':''},
+        'six': {'value':[6],'flag':''},
+        'seven': {'value':[7],'flag':''},
+        'sevens': {'value':[7],'flag':''},
+        'eight': {'value':[8],'flag':''},
+        'eights': {'value':[8],'flag':''},
+        'nine': {'value':[9],'flag':''},
+        'ten': {'value':[10],'flag':''},
+        "eleven": {'value':[11],'flag':''},
+        "twelve": {'value':[12],'flag':''},
+        "thirteen": {'value':[13],'flag':''},
+        "fourteen": {'value':[14],'flag':''},
+        "fifteen": {'value':[15],'flag':''},
+        "sixteen": {'value':[16],'flag':''},
+        "seventeen": {'value':[17],'flag':''},
+        "eighteen": {'value':[18],'flag':''},
+        "nineteen": {'value':[19],'flag':''},
+        "twenty": {'value':[20],'flag':''},
+        "thirty": {'value':[30],'flag':''},
+        "forty": {'value':[40],'flag':''},
+        "fifty": {'value':[50],'flag':''},
+        "sixty": {'value':[60],'flag':''},
+        "seventy": {'value':[70],'flag':''},
+        "eighty": {'value':[80],'flag':''},
+        "ninety": {'value':[90],'flag':''},
+        'or': {'value':[1],'flag':''},
+        'few': {'value':[2,3], 'flag':'Few'},
+        'several': {'value':[4,5], 'flag':'Several'},
+        'half': {'value':[0.5],'flag':''},
+        'some': {'value':[3,4], 'flag':'Some'},
+        'many': {'value':[7, 14], 'flag':'Many'},# for many days
+        'next': {'value':[1,2], 'flag':'Next'},
+        'for': {'value':[3,4], 'flag':'For'},
+        'of': {'value':[3, 4], 'flag': 'Period of'},
+        'different': {'value':[1,2], 'flag':'Different'},
+        'successive': {'value':[1,2],'flag':'Successive'},
+        'additional': {'value':[1,2], 'flag':'Additional'},
+        'within': {'value':[2,3], 'flag':'Within'},
+        'after': {'value':[3,4], 'flag':'After'},  # Yellow crystals of [Hg (CH2COCH3)(4-NO2pcyd)]n were grown after days
+        'following': {'value':[1,2],'flag':'Following'},  # 3 disappeared in the following days
+        'in': {'value':[7,14], 'flag':'In days to weeks'},  # Crystals were observed to lose solvent slowly and decompose in days to weeks when
+        'over': {'value':[4,5] ,'flag':'Over'}# over days
     }
     if is_digit(string):
-        return float(string)
+        return {'value':[float(string)],'flag':''}
     else:
-        return float(digit_numbers[string.lower()])
+        return digit_numbers[string.lower()]
 
 
 def is_digit(x):
@@ -493,6 +534,15 @@ def sentence_containing_word(spacy_doc, word):
         if word in sent.text:
             return sent.text
 
+def sentence_containing_words(spacy_doc, words):
+    '''
+    function to return sentence containing word
+    '''
+    for sent in spacy_doc.sents:
+        if all(word in sent.text for word in words):
+            return sent.text
+
+
 
 def get_ph(paragraph):
     pH_regex = r"(\d+\.\d+)\s*p\s*h|\s*p\s*h\s*(\d+\.\d+)|(\d+\.\d+)\s*(acidic|acid|neutral|base|basic)|\s*(acidic|acid|neutral|base|basic)\s*(\d+\.\d+)"
@@ -502,7 +552,7 @@ def get_ph(paragraph):
 
 def chemical_formula_regex(paragraph):
     pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
-    print(re.findall(pattern, paragraph))
+    # print(re.findall(pattern, paragraph))
     return  # re.compile(pattern)
 
 
@@ -543,7 +593,6 @@ def extract_chemical_quantities(paragraph, chemicals_list):
     dictionary of keys (chemical name) and values (list of quantities and units)
     """
     extracted_data = {}
-    chemicals_list = [i for i in chemicals_list if i != 'H']
     for chemical in chemicals_list:
         tmp = []
         adj_chemical = re.escape(chemical)
@@ -632,8 +681,116 @@ def extract_esi(paragraphs):
             plain_text += ''.join(text)
     doi_esi = re.findall(
         r"\b10\.\d{4,}(?:\.\d+)*\/\S+\b", plain_text, re.IGNORECASE)
+    return doi_esi
 
-    # #doi_esi = "https://doi.org/"+doi_esi[0]
-    # # from PyPaperBot import PyPaperBot
-    # bot = PyPaperBot()
-    # bot.download_paper(doi_esi)
+
+def all_elements():
+    radius = {
+        'H': 0.31,
+        'He': 0.28,
+        'Li': 1.28,
+        'Be': 0.96,
+        'B': 0.85,
+        'C': 0.76,
+        'N': 0.71,
+        'O': 0.66,
+        'F': 0.57,
+        'Ne': 0.58,
+        'Na': 1.66,
+        'Mg': 1.41,
+        'Al': 1.21,
+        'Si': 1.11,
+        'P': 1.07,
+        'S': 1.05,
+        'Cl': 1.02,
+        'Ar': 1.06,
+        'K': 2.03,
+        'Ca': 1.76,
+        'Sc': 1.7,
+        'Ti': 1.6,
+        'V': 1.53,
+        'Cr': 1.39,
+        'Mn': 1.39,
+        'Fe': 1.32,
+        'Co': 1.26,
+        'Ni': 1.24,
+        'Cu': 1.32,
+        'Zn': 1.22,
+        'Ga': 1.22,
+        'Ge': 1.2,
+        'As': 1.19,
+        'Se': 1.2,
+        'Br': 1.2,
+        'Kr': 1.16,
+        'Rb': 2.2,
+        'Sr': 1.95,
+        'Y': 1.9,
+        'Zr': 1.75,
+        'Nb': 1.64,
+        'Mo': 1.54,
+        'Tc': 1.47,
+        'Ru': 1.46,
+        'Rh': 1.42,
+        'Pd': 1.39,
+        'Ag': 1.45,
+        'Cd': 1.44,
+        'In': 1.42,
+        'Sn': 1.39,
+        'Sb': 1.39,
+        'Te': 1.38,
+        'I': 1.39,
+        'Xe': 1.4,
+        'Cs': 2.44,
+        'Ba': 2.15,
+        'La': 2.07,
+        'Ce': 2.04,
+        'Pr': 2.03,
+        'Nd': 2.01,
+        'Pm': 1.99,
+        'Sm': 1.98,
+        'Eu': 1.98,
+        'Gd': 1.96,
+        'Tb': 1.94,
+        'Dy': 1.92,
+        'Ho': 1.92,
+        'Er': 1.89,
+        'Tm': 1.9,
+        'Yb': 1.87,
+        'Lu': 1.87,
+        'Hf': 1.75,
+        'Ta': 1.7,
+        'W': 1.62,
+        'Re': 1.51,
+        'Os': 1.44,
+        'Ir': 1.41,
+        'Pt': 1.36,
+        'Au': 1.36,
+        'Hg': 1.32,
+        'Tl': 1.45,
+        'Pb': 1.46,
+        'Bi': 1.48,
+        'Po': 1.4,
+        'At': 1.5,
+        'Rn': 1.5,
+        'Fr': 2.6,
+        'Ra': 2.21,
+        'Ac': 2.15,
+        'Th': 2.06,
+        'Pa': 2,
+        'U': 1.96,
+        'Np': 1.9,
+        'Pu': 1.87,
+        'Am': 1.8,
+        'Cm': 1.69
+    }
+    return list(radius.keys())
+
+def get_unique(data):
+    """
+    Function to return unique values in a data structure as a list
+    """
+    unique = []
+    for all_data in data:
+        if all_data not in unique:
+            unique.append(all_data)
+    return unique

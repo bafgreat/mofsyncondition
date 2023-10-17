@@ -4,27 +4,36 @@ __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
 
+
 def get_times_toks(sentence_toks):
     """
     Finds tokens corresponding to temperature values
     Returns IDs
     """
     times = []
-    time_units = ["h", "hr", "hrs", "min", "hour", "hours", "minutes", "d", "day", "days"]
+    time_units = ["h", "hr", "hrs", "min", "hour", "hours", "minutes", "d",
+                  "day", "days", 'weeks', 'week', 'month', 'month', 'year', 'years']
 
     for num, (tok, next_tok) in enumerate(zip(sentence_toks, sentence_toks[1:])):
+        text = tok + ' ' + next_tok
+        pattern_not_to_match = r'\d-\s*[dhsm]|formed|take'
+        reject_pattern = re.search(pattern_not_to_match, text)
+        if reject_pattern:
+            print('Text checker', text)
+            continue
         if tok == "overnight":
             times.append({"tok_id": num, "value": "overnight", "units": "N/A"})
         elif next_tok == "days":
             times.append({"tok_id": num, "value": tok, "units": "day"})
         else:
-            tok_num = re.findall("(^[0-9\-\.\,]*)\s*[hrsmind]*", tok)[0].replace(",", "")
+            tok_num = re.findall(
+                "(^[0-9\-\.\,]*)\s*[hrsmind]*", tok)[0].replace(",", "")
             tok_unit = re.findall("[0-9\-\.\,]*\s*([hrsmind]*$)", tok)[0]
             tok_unit = next_tok if tok_unit == "" else tok_unit
 
             if tok_num != "" and all(t in "0987654321-,." for t in tok_num) and tok_unit in time_units:
-                times.append({"tok_id": num, "value": tok_num, "units": tok_unit})
-
+                times.append(
+                    {"tok_id": num, "value": tok_num, "units": tok_unit})
     return times
 
 
@@ -40,11 +49,13 @@ def get_temperatures_toks(sentence_toks):
         if tok == "room" and sentence_toks[num - 1] != "from":
             temperatures.append({"tok_id": num, "value": "RT", "units": "N/A"})
         else:
-            tok_num = re.findall("(^[0-9\-\.\,]*)\s*[°KC]*", tok)[0].replace(",", "")
+            tok_num = re.findall(
+                "(^[0-9\-\.\,]*)\s*[°KC]*", tok)[0].replace(",", "")
             tok_unit = re.findall("[0-9\-\.\,]*\s*([°KC]*$)", tok)[0]
             tok_unit = next_tok if tok_unit == "" else tok_unit
             tok_unit = '°C' if tok_unit == '°' else tok_unit
-            next_toks = "".join([sentence_toks[i] for i in range(num + 1, num + 4) if i < len(sentence_toks)])
+            next_toks = "".join([sentence_toks[i] for i in range(
+                num + 1, num + 4) if i < len(sentence_toks)])
 
             # temperature token contains allowed symbols
             # units of temperature
@@ -53,7 +64,8 @@ def get_temperatures_toks(sentence_toks):
                     and all(t in "0987654321-." for t in tok_num) \
                     and all(t in "°KC" for t in tok_unit) \
                     and all(r not in next_toks for r in rate_units):
-                temperatures.append({"tok_id": num, "value": tok_num, "units": tok_unit})
+                temperatures.append(
+                    {"tok_id": num, "value": tok_num, "units": tok_unit})
 
     return temperatures
 
@@ -64,7 +76,8 @@ def get_environment(sentence, materials_):
     in_ids = [t.i for t in sentence if t.text in ["in", "under"]]
     atmospheres = ["inert", "reducing", "oxidizing"]
     env_materials = [m for m in materials_]
-    env_materials.extend({"text": t.text, "tok_ids": [t.i]} for t in sentence if t.text in atmospheres)
+    env_materials.extend({"text": t.text, "tok_ids": [
+                         t.i]} for t in sentence if t.text in atmospheres)
 
     def get_token_ids(media_ids, materials):
         m_id = 0
@@ -93,7 +106,8 @@ def tok2nums(tokens, sentence):
         if all(sentence[t_id].i not in t["tok_ids"] for t in values):
             try:
                 t_value = __get_tok_values([t.text for t in sentence], t_tok)
-                t_value["tok_ids"] = [sentence[t].i for t in t_value["tok_ids"]]
+                t_value["tok_ids"] = [
+                    sentence[t].i for t in t_value["tok_ids"]]
                 values.append(t_value)
             except:
                 pass
@@ -119,7 +133,8 @@ def __get_temperatures_list(sentence_tokens, token):
     # print("->", current_id, current_tok, sentence["tokens"][temp_id-1])
 
     while current_id > 0 and __is_valid_temp_token(current_tok, units):
-        tok_num = re.sub("([0-9\.\,]*)\s*[°A-Za-z]*", "\\1", current_tok).replace(",", "")
+        tok_num = re.sub("([0-9\.\,]*)\s*[°A-Za-z]*",
+                         "\\1", current_tok).replace(",", "")
         if tok_num != "":
             temp_list.append((tok_num, current_id))
 
@@ -182,12 +197,15 @@ def __get_tok_values(sentence_tokens, token):
     # multiple values or range
     temp_id = token["tok_id"]
     if sentence_tokens[temp_id - 1] in [",", "and", "to", "or"] and "-" not in sentence_tokens[temp_id]:
-        temp_list, first_tok_id = __get_temperatures_list(sentence_tokens, token)
-        temp_data = __break_temperature_range(temp_list, sentence_tokens[first_tok_id])
+        temp_list, first_tok_id = __get_temperatures_list(
+            sentence_tokens, token)
+        temp_data = __break_temperature_range(
+            temp_list, sentence_tokens[first_tok_id])
         temp_data["units"] = token["units"]
         return temp_data
 
-    token_num = re.sub("([0-9\.\,\-]*)\s*[°A-Za-z]*", "\\1", sentence_tokens[temp_id]).replace(",", "")
+    token_num = re.sub("([0-9\.\,\-]*)\s*[°A-Za-z]*", "\\1",
+                       sentence_tokens[temp_id]).replace(",", "")
     range_values = re.split("-", token_num)
 
     # single value
@@ -213,7 +231,8 @@ def __get_tok_values(sentence_tokens, token):
 
     # "... ° -... °"
     if sentence_tokens[temp_id - 1] == "°" and value_1 == "":
-        value = re.sub("([0-9\.\,\-]*)\s*[°A-Za-z]*", "\\1", sentence_tokens[temp_id - 2]).replace(", ", "")
+        value = re.sub("([0-9\.\,\-]*)\s*[°A-Za-z]*", "\\1",
+                       sentence_tokens[temp_id - 2]).replace(", ", "")
         return {"max": float(value_2),
                 "min": float(value),
                 "values": [],
@@ -226,4 +245,3 @@ def __get_tok_values(sentence_tokens, token):
             "values": [float(token_num)],
             "tok_ids": [temp_id],
             "units": token["units"]}
-    
