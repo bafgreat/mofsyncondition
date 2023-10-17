@@ -1,2 +1,0 @@
-mofsyncondition/models/ml_models/NN_CV_model.pkl filter=lfs diff=lfs merge=lfs -text
-mofsyncondition/models/ml_models/NN_tfv_model.pkl filter=lfs diff=lfs merge=lfs -text
