@@ -250,32 +250,30 @@ def run_condition_extraction(html_files):
         #     print(experimental_condition)
         # except:
         #     pass
-        print (experimental_condition)
         synthesis_data[name] = experimental_condition
 
-        # filetyper.append_json(synthesis_data, '../db/json/synthesis_data.json')
+        filetyper.append_json(synthesis_data, '../db/json/all_synthesis_data.json')
     return
 
+def run(html_files):
+    outfile = '../db/json/all_synthesis_data.json'
+    if os.path.exists(outfile):
+        json_data = filetyper.load_data(outfile)
 
+        done_keys = json_data.keys()
+        all_html_refcodes = [i.split('/')[-1].split('.')[0] for i in html_files]
+        unfinished_refcodes = [i for i in all_html_refcodes if not i in done_keys]
+        all_html_files = [external_drive_path + '/'+refcode +
+                    '.html' for refcode in unfinished_refcodes]
+        all_html_files = [
+        file_path for file_path in all_html_files if os.path.getsize(file_path) > 500]
+    else:
+        all_html_files = [file_path for file_path in html_files if os.path.getsize(file_path) > 500]
+
+    run_condition_extraction(all_html_files)
+    
 # external_drive_path = os.path.abspath('/Volumes/My Passport/All_HTML')
-
-# # json_data = filetyper.load_data('../db/json/synthesis_data.json')
-
-# # done_keys = json_data.keys()
-
-# html_files = sorted(glob.glob(external_drive_path+'/AB*.html'))
-# all_html_refcodes = [i.split('/')[-1].split('.')[0] for i in html_files]
-
-# # unfinished_refcodes = [i for i in all_html_refcodes if not i in done_keys]
-# # all_html_files = [external_drive_path + '/'+refcode +
-# #                   '.html' for refcode in unfinished_refcodes]
-
-# # all_html_files = [
-# #     file_path for file_path in all_html_files if os.path.getsize(file_path) > 500]
-# all_html_files = [
-#     file_path for file_path in html_files if os.path.getsize(file_path) > 500]
-
-# run_condition_extraction(all_html_files)
-
+# html_files = sorted(glob.glob(external_drive_path+'/*.html'))
+run(html_files)
 # # check = [os.path.getsize(file_path) for file_path in all_html_files]
 # # print (check)
