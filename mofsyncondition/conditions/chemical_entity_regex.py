@@ -3,7 +3,6 @@ from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
-import spacy
 from mofsyncondition.doc import doc_parser
 
 
@@ -94,7 +93,7 @@ def solvents_regex():
         'trimethyl pentane', 'tris', 'undecan-1-ol', 'undecanol', 'valeronitrile', 'water',
         'xylene', 'xylol', 'N,N-diethylformamide',
         '[nBu4N][BF4]', 'BCN', 'ACN', 'BTN', 'BHDC', 'AOT', 'DMA',
-        'MOPS',  'MES', 'heavy water', 'IPA',
+        'MOPS',  'MES', 'heavy water', 'IPA', 'methanolic', 'water'
         'TBP', 'TEA', 'DEF', 'DMA', 'CCl4', 'potassium hydroxide', 'sodium hydroxide',
         'calcium hydroxide', 'methyl pyrrolidinone', 'ethyl lactate',
         'methyl pyrrolidin-2-one', 'benzene', 'C2H4Cl2', 'HEPES', 'EtOD',
@@ -124,16 +123,14 @@ def solvents_regex():
         'Na2SO4', 'C6H5Cl', 'methyl formamide', 'CH3CO2H', 'methyl pentane', 'TBAPF6',
         'H2O-Triton X', 'CH2ClCH2Cl', 'sodium chloride', 'Triton X-100', 'HDA',
         'di-n-hexyl ether', 'potassium iodide', 'potassium bromide', 'potassium chloride',
-        'potassium floride', 'KI', 'KF', 'KCl', 'KBr' 'sodium iodide', 'sodium bromide',
-        'sodium chloride', 'sodium floride', 'NaI', 'NaF', 'NaCl', 'NaBr'
+        'potassium floride', 'KI', 'KF', 'KCl', 'KBr' 'sodium iodide',
+        'sodium bromide', 'sodium floride', 'NaI', 'NaF', 'NaCl', 'NaBr', 'DI-water'
     ]
     solvent_name_options = list(set(solvent_list))
     prefixes = ['iso', 'tert', 'sec', 'ortho', 'meta', 'para', 'meso']
     solvent_re = re.compile(r'(?:^|\b)(?:(?:%s|d\d?\d?|[\dn](?:,[\dn]){0,3}|[imnoptDLRS])-?)?(?:%s)(?:-d\d?\d?)?(?=$|\b)'
                             % ('|'.join(re.escape(s) for s in prefixes),
                                '|'.join(re.escape(s).replace(r'\ ', r'[\s\-]?') for s in solvent_name_options)))
-    # solvent_name_reg = "|".join(solvent_name_options)
-    # pattern = re.compile(solvent_name_reg)
     return solvent_name_options
 
 
@@ -148,28 +145,50 @@ def mof_regex():
 
 
 def metal_salts_formular():
-    base_metal = ['Mg', 'Al', 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn',
-                  'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Y', 'Zr', 'Nb', 'Mo',
-                  'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'Hf', 'Ta', 'W', 'Re', 'Os',
-                  'Ir', 'Pt', 'Au', 'Hg', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Rb',
-                  'Sr', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Sm', 'Eu', 'Gd',
-                  'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu']
+    '''
+    Creating a regex pattern to find metal salts in a list of chemicals
+    '''
+    base_metal = ['Li', 'Be', 'Ba', 'Mg', 'Al', 'Ka' 'Ca', 'Sc', 'Ti', 'V', 'Cr', 'Mn',
+                  'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ha', 'Rb', 'Sr',
+                  'Y', 'Zr', 'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd',
+                  'In', 'Sn', 'CS', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm',
+                  'Eu', 'Gd', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu',
+                  'Hf', 'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Ti',
+                  'Pb', 'Bi', 'Po', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U', 'Np',
+                  'Pu', 'Am', 'Cm', 'BK', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Md',
+                  'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds', 'Rg', 'Cn',
+                  'Uut', 'Fl', 'Lv'
+                  ]
     prefix = '^'
     suffix = r'(\((?:[IVX]+|\d+)\))?(\w+)\)?(\d*)'
     list_of_formulars = [prefix+metal +
                          suffix for metal in base_metal if metal not in ['Zn']]
     metal_formulars = '|'.join(list_of_formulars)
-    full_names = ['[Mm]olybdenum', '[Nn]iobium', '[Yy]ttrium', '[Cc]hromium',
-                  '[Ss]candium', '[Nn]ickel', '[Ll]ead',
-                  '[Tt]itanium', '[Zz]inc', '[Mm]anganese', '[Vv]anadium',
-                  '[Mm]agnesium', '[Cc]opper', '[Ii]ron', '[Ff]errous',
-                  '[Aa]lumin(ium|um|o)', '[Cc]admium', '[Zz]irconium',
-                  '[Cc]obalt', '[Rr]ubidium', '[Cc]esium',
-                  '[Ff]rancium', '[Gg]old', '[Mm]ercury', '[Hh]assium',
-                  '[Ii]ridium', '[Os]mium', '[Rr]henium', '[Tt]antalum',
-                  '[Hh]afnium', '[Rr]utherfordium', '[Ss]eaborgium',
-                  '[Bb]ohrium', '[Bb]arium', '[lL]anthanium', 'Rubidium',
-                  '[Yy]ttrium', '[Cc]aesium']
+    full_names = ['[Ll]ithium', '[Bb]eryllium', '[Ss]odium', '[Pp]otassium',
+                  '[Mm]agnesium', '[Aa]lumin(ium|um|o)', '[cC]alcium', '[Ss]candium',
+                  '[Tt]itanium|[Tt]itanous|[Tt]itanic', '[Vv]anadium|[vV]anadous|[Vv]anadic',
+                  '[Cc]hromium|[cC]hromous|[cC]hromic', '[Mm]anganese|[Mm]anganous|[Mm]anganic',
+                  '[Ii]ron|[Ff]errous|[Ff]erric', '[Cc]obalt|[cC]obaltous|[Cc]obaltic',
+                  '[Nn]ickel|[nN]ickelous|[Nn]ickelic', '[Cc]opper|[cC]uprous|[Cc]upric',
+                  '[Zz]inc', 'Gallium', '[Rr]ubidium', '[Ss]trontium', '[Yy]ttrium',
+                  '[Zz]irconium', '[Nn]iobium', '[Mm]olybdenum', 'Technetium',
+                  '[rR]uthenium', '[Rr]hodium', '[Pp]alladium', '[Cc]admium', '[Ii]ndium',
+                  '[tT]in|[sS]tannous|[Ss]tannic', '[Cc]esium', '[Bb]arium', '[lL]anthanium',
+                  '[Cc]erium', '[pP]raseodymium', '[Nn]eodymium', '[Pp]romethium', '[Ss]amarium',
+                  '[E]uropium', '[Gg]adolinium', '[Tt]erbium', '[Dd]ysprosium', '[Hh]olmium',
+                  '[Ee]rbium', '[Tt]hulium', '[Yy]tterbium', '[Ll]utetium', '[Hh]afnium',
+                  '[Tt]antalum', '[Tt]ungsten', '[Rr]henium', '[Os]mium', '[Ii]ridium',
+                  '[Pp]latinum', '[Gg]old|[aA]urous|[Aa]uric',
+                  '[Mm]ercury|[mM]ercurous|[m]Mercuric', '[Tt]hallium',
+                  '[Ll]ead|[pP]lumbous|[Pp]lumbic', '[Bb]ismuth', '[Pp]olonium',
+                  '[Ff]rancium', '[Rr]adium', '[Aa]ctinium', '[Tt]horium', '[Pp]rotactinium',
+                  '[Uu]ranium', '[Nn]eptunium', '[Pp]lutonium', '[Aa]mericium', '[Cc]urium',
+                  '[Bb]erkelium', '[cC]alifornium', '[eE]insteinium', '[Ff]ermium',
+                  '[mM]endelevium', '[Nn]obelium', '[Ll]awrencium', '[Rr]utherfordium',
+                  '[Dd]ubnium', '[Ss]eaborgium', '[Bb]ohrium', '[Hh]assium',
+                  '[Mm]eitnerium', '[dD]armstadtium', '[Rr]oentgenium', '[cC]opernicium',
+                  '[Uu]nuntrium', '[Ff]levorium', '[Ll]ivermorium'
+                  ]
     full_names = '|'.join(full_names)
     name_pattern = r'\b('+full_names+r')\b'
     return metal_formulars+'|'+name_pattern
@@ -201,7 +220,7 @@ def synthetic_method_re():
 def key_words_regex():
     '''
     '''
-    crystalization = [r"[Cc]rystal\w*", r'[Gg]rown', '[gG]row\w*']
+    crystalization = [r"[Cc]rystal\w*", r'[Gg]rown', r'[gG]row\w*']
     stability = [
         r"[sS]tability",
         r"[sS]table",
@@ -266,37 +285,98 @@ def solvent_abbreviation(word):
     """
     Takes an abbreviation and returns full word. 
     """
-    all_abbreviation = {
-        'DMSO': 'dimethylsulfoxide',
-        'DEF': 'N,N-dimethylformamide',
-        'dimethylformamide': 'N,N-dimethylformamide',
-        'MeOH': 'methanol',
-        'THF': 'tetrahydrofuran',
-        'n,n-DMF': 'N,N-dimethylformamide',
-        'DMF': 'N,N-dimethylformamide',
-        'dimethylformamide': 'N,N-dimethylformamide',
-        'TFE': '2,2,2-trifluorethanol',
-        'TFA': 'trifluoroacetic acid',
-        'TeCA': '1,1,2,2-Tetrachloroethane',
-        'TTCE': 'tetrachloroethane',
-        'PCE': 'pentachloroethane',
-        'HCE': 'hexachloroethane',
-        '2Me-THF': '2-methyltetrahydrofuran',
-        '2-MTHF': '2-methyltetrahydrofuran',
-        'DMAc': 'N,N-dimethylacetamide',
-        'dimethylacetamide': 'N,N-dimethylacetamide',
-        'DMA': 'dimethylacetamide',
-        'H2SO4': 'sulphuric acid',
-        'IPA': 'isopropyl alcohol',
-        'ACN': 'acetonitril',
-        'H2O2': 'hydrogen peroxide',
-        'CCl4': 'tetrachloromethane',
-        'H2O': 'water',
-        '2,6-NDC': '2,6-Naphthalenedicarboxylic acid'
-        # 'KOH':'potassium hydroxide'
-    }
-    if word in list(all_abbreviation.keys()):
-        return all_abbreviation[word]
+    if re.match(r'\bDMSO\b', word, re.IGNORECASE):
+        return 'dimethylsulfoxide'
+    elif re.match(r'\b([Nn],[Nn]-)?DEF\b|\bdiethylformamide\b', word, re.IGNORECASE):
+        return 'N,N-diethylformamide',
+    elif word in ['MeOH']:
+        return 'methanol'
+    elif word in ['THF']:
+        return 'tetrahydrofuran'
+    elif re.match(r'\b(n,n-)?DMF\b', word, re.IGNORECASE):
+        return 'N,N-dimethylformamide'
+    elif word in ['TFE']:
+        return '2,2,2-trifluorethanol'
+    elif word in ['TFA']:
+        return 'trifluoroacetic acid'
+    elif word in ['TeCA']:
+        return '1,1,2,2-Tetrachloroethane'
+    elif word in ['TTCE']:
+        return 'tetrachloroethane'
+    elif word in ['PCE']:
+        return 'pentachloroethane'
+    elif word in ['HCE']:
+        return 'hexachloroethane'
+    elif word in ['2Me-THF']:
+        return '2-methyltetrahydrofuran'
+    elif word in ['2-MTHF']:
+        return '2-methyltetrahydrofuran'
+    elif re.match(r'\bDMAc\b|\bDMA\b', word, re.IGNORECASE):
+        return '2-methyltetrahydrofuran'
+    elif word in ['H2SO4']:
+        return 'sulphuric acid'
+    elif word in ['IPA']:
+        return 'isopropyl alcohol'
+    elif word in ['ACN']:
+        return 'acetonitril'
+    elif word in ['H2O2']:
+        return 'hydrogen peroxide'
+    elif word in ['CCl4']:
+        return 'tetrachloromethane'
+    elif word in ['H2O']:
+        return 'water'
+    elif re.search(r'\b(2,6-)?[Nn][Dd][Cc]\b', word, re.IGNORECASE):
+        return '2,6-naphthalenedicarboxylic acid'
+    elif word in ['KOH']:
+        return 'potassium hydroxide'
+    elif re.match(r"\b(\d*,?\d+µ?-)?[pP]hen\b", word, re.IGNORECASE):
+        return word + "anthroline"
+    elif word in ['H2dte', 'dte']:
+        return '1,4-ditetrazolylethylene'
+    elif word in ['H2dtb', 'dtb']:
+        return '1,3-dis(2H-tetrazol-5-yl)benzene'
+    elif word in ['H4bptc', 'bptc']:
+        return "2,3,3',4-biphenyltetracarboxylic acid",
+    elif re.match(r"\b(\d*,?\d+µ?-)?bipy\b", word):
+        return word + "ridine"
+    
+    elif re.match(r"\b(\d*,?\d+µ?-)?H2BDC|BDC\b", word):
+        match = re.search(r"\d,\d-", word)
+        if match:
+            digits = match.group()
+            return digits + 'benzenedicarboxylic acid'
+        else:
+            return 'benzenedicarboxylic acid'
+        
+    elif re.match(r"\b(\d*,?\d+µ?-)?H2BTC|BTC\b", word):
+        match = re.search(r"\d,\d-", word)
+        if match:
+            digits = match.group()
+            return digits + 'benzenetricarboxylic acid'
+        else:
+            return 'benzenetricarboxylic acid'
+    elif word in ['bpee']:
+        return '1,2-bis(4-pyridyl)ethylene'
+    elif re.match(r'\bNaOAc\b|\bCH3COONa\b', word, re.IGNORECASE):
+        return 'sodium acetate'
+    elif word in ['CH2Cl2']:
+        return 'dichloromethane'
+    elif re.match(r'\bEtOAc\b|\bETAC\b|\bEA\b', word, re.IGNORECASE):
+        return 'ethyl acetate'
+    elif word in ['bpa']:
+        return 'bisphenol'
+    elif re.match(r'\bEtOH\b|\bC2H5OH\b|\bE2OH\b|\bAA\b|\bETH\b', word, re.IGNORECASE):
+        return 'ethanol'
+    elif word in ['NH4SCN']:
+        return 'ammonium thiocyanate'
+    elif word in ['NaN3']:
+        return 'sodium azide'
+    elif word in ['H2mip', 'mip']:
+        return '5-methylisophthalic acid'
+    elif word in ['DI', 'DI-water', 'di-water', 'DI-H2O', 'di-H2O']:
+        return 'deionised water'
+    elif re.match(r"\b(\d*,?\d+µ?-)?[H2]?tdc\b", word, re.IGNORECASE):
+        return '1,2,5-thiadiazole-3,4-dicarboxylate'
     else:
         return word
 
@@ -310,7 +390,7 @@ def reaction_time_breakdown(react_time, spacy_doc):
     crystalization_time = []
     stability_pattern, analysis_pattern, crystalization = key_words_regex()
     for time in react_time:
-        seen =[]
+        seen = []
         value = time['value']
         units = time['units']
         if time['units'] != 'N/A' and time['value'] not in ['-', '.', '_', '?', '>', '<', ',', ')', '(', '[', ']']:
@@ -339,7 +419,6 @@ def reaction_time_breakdown(react_time, spacy_doc):
                     time_hrs = convert_time_to_hour(value, units)
                     reaction_time.append(time_hrs)
                     seen.append(value)
-        
     return reaction_time, stability, drying, crystalization_time
 
 
@@ -369,26 +448,27 @@ def convert_time_to_hour(value, units):
     match = re.search(r'\d+$', value)
     if match:
         value = match.group()
-    
     if value == 'overnight':
         time_hrs['value'] = [24]
         time_hrs['flag'] = 'overnight'
     elif units == 'day' or units == 'days' or units == 'd':
-        time_hrs['value']= [i*24 for i in numbers_to_digit(value)['value']]
-        if len(numbers_to_digit(value)['flag'])> 0:
-           time_hrs['flag'] = numbers_to_digit(value)['flag'] +' '+ 'days'
+        time_hrs['value'] = [i*24 for i in numbers_to_digit(value)['value']]
+        if len(numbers_to_digit(value)['flag']) > 0:
+            time_hrs['flag'] = numbers_to_digit(value)['flag'] + ' ' + 'days'
         else:
             time_hrs['flag'] = numbers_to_digit(value)['flag']
     elif units == 'min' or units == 'minutes' or units == 'm':
-        time_hrs['value']= [round(i/60.0, 3) for i in numbers_to_digit(value)['value']]
-        if len(numbers_to_digit(value)['flag'])> 0:
-           time_hrs['flag'] = numbers_to_digit(value)['flag'] +' '+ 'minutes'
+        time_hrs['value'] = [round(i/60.0, 3)
+                             for i in numbers_to_digit(value)['value']]
+        if len(numbers_to_digit(value)['flag']) > 0:
+            time_hrs['flag'] = numbers_to_digit(
+                value)['flag'] + ' ' + 'minutes'
         else:
             time_hrs['flag'] = numbers_to_digit(value)['flag']
         # time_hrs = round(numbers_to_digit(value)/60.0, 3)
     else:
-        time_hrs['value']= [float(value)]
-        time_hrs['flag']= ''
+        time_hrs['value'] = [float(value)]
+        time_hrs['flag'] = ''
     return time_hrs
 
 
@@ -441,7 +521,7 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
                     match = re.search(analysis_pattern, sentence)
                     match2 = re.search(stability_pattern, sentence)
                     match3 = re.search(crystalisation_pattern, sentence)
-                    if match and value not in seen:
+                    if match3 and value not in seen:
                         temp = convert_temp_to_kelvin(value, units)
                         crystalization_temp.append(temp)
                         seen.append(value)
@@ -463,57 +543,60 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
 
 def numbers_to_digit(string):
     digit_numbers = {
-        'one': {'value':[1], 'flag':''},
-        'two': {'value':[2],'flag':''},
-        'three': {'value':[3],'flag':''},
-        'four': {'value':[4], 'flag':''},
-        'fours': {'value':[4],'flag':''},
-        'five': {'value':[5],'flag':''},
-        'fives': {'value':[5],'flag':''},
-        'six': {'value':[6],'flag':''},
-        'seven': {'value':[7],'flag':''},
-        'sevens': {'value':[7],'flag':''},
-        'eight': {'value':[8],'flag':''},
-        'eights': {'value':[8],'flag':''},
-        'nine': {'value':[9],'flag':''},
-        'ten': {'value':[10],'flag':''},
-        "eleven": {'value':[11],'flag':''},
-        "twelve": {'value':[12],'flag':''},
-        "thirteen": {'value':[13],'flag':''},
-        "fourteen": {'value':[14],'flag':''},
-        "fifteen": {'value':[15],'flag':''},
-        "sixteen": {'value':[16],'flag':''},
-        "seventeen": {'value':[17],'flag':''},
-        "eighteen": {'value':[18],'flag':''},
-        "nineteen": {'value':[19],'flag':''},
-        "twenty": {'value':[20],'flag':''},
-        "thirty": {'value':[30],'flag':''},
-        "forty": {'value':[40],'flag':''},
-        "fifty": {'value':[50],'flag':''},
-        "sixty": {'value':[60],'flag':''},
-        "seventy": {'value':[70],'flag':''},
-        "eighty": {'value':[80],'flag':''},
-        "ninety": {'value':[90],'flag':''},
-        'or': {'value':[1],'flag':''},
-        'few': {'value':[2,3], 'flag':'Few'},
-        'several': {'value':[4,5], 'flag':'Several'},
-        'half': {'value':[0.5],'flag':''},
-        'some': {'value':[3,4], 'flag':'Some'},
-        'many': {'value':[7, 14], 'flag':'Many'},# for many days
-        'next': {'value':[1,2], 'flag':'Next'},
-        'for': {'value':[3,4], 'flag':'For'},
-        'of': {'value':[3, 4], 'flag': 'Period of'},
-        'different': {'value':[1,2], 'flag':'Different'},
-        'successive': {'value':[1,2],'flag':'Successive'},
-        'additional': {'value':[1,2], 'flag':'Additional'},
-        'within': {'value':[2,3], 'flag':'Within'},
-        'after': {'value':[3,4], 'flag':'After'},  # Yellow crystals of [Hg (CH2COCH3)(4-NO2pcyd)]n were grown after days
-        'following': {'value':[1,2],'flag':'Following'},  # 3 disappeared in the following days
-        'in': {'value':[7,14], 'flag':'In days to weeks'},  # Crystals were observed to lose solvent slowly and decompose in days to weeks when
-        'over': {'value':[4,5] ,'flag':'Over'}# over days
+        'one': {'value': [1], 'flag': ''},
+        'two': {'value': [2], 'flag': ''},
+        'three': {'value': [3], 'flag': ''},
+        'four': {'value': [4], 'flag': ''},
+        'fours': {'value': [4], 'flag': ''},
+        'five': {'value': [5], 'flag': ''},
+        'fives': {'value': [5], 'flag': ''},
+        'six': {'value': [6], 'flag': ''},
+        'seven': {'value': [7], 'flag': ''},
+        'sevens': {'value': [7], 'flag': ''},
+        'eight': {'value': [8], 'flag': ''},
+        'eights': {'value': [8], 'flag': ''},
+        'nine': {'value': [9], 'flag': ''},
+        'ten': {'value': [10], 'flag': ''},
+        "eleven": {'value': [11], 'flag': ''},
+        "twelve": {'value': [12], 'flag': ''},
+        "thirteen": {'value': [13], 'flag': ''},
+        "fourteen": {'value': [14], 'flag': ''},
+        "fifteen": {'value': [15], 'flag': ''},
+        "sixteen": {'value': [16], 'flag': ''},
+        "seventeen": {'value': [17], 'flag': ''},
+        "eighteen": {'value': [18], 'flag': ''},
+        "nineteen": {'value': [19], 'flag': ''},
+        "twenty": {'value': [20], 'flag': ''},
+        "thirty": {'value': [30], 'flag': ''},
+        "forty": {'value': [40], 'flag': ''},
+        "fifty": {'value': [50], 'flag': ''},
+        "sixty": {'value': [60], 'flag': ''},
+        "seventy": {'value': [70], 'flag': ''},
+        "eighty": {'value': [80], 'flag': ''},
+        "ninety": {'value': [90], 'flag': ''},
+        'or': {'value': [1], 'flag': ''},
+        'few': {'value': [2, 3], 'flag': 'Few'},
+        'several': {'value': [4, 5], 'flag': 'Several'},
+        'half': {'value': [0.5], 'flag': ''},
+        'some': {'value': [3, 4], 'flag': 'Some'},
+        'many': {'value': [7, 14], 'flag': 'Many'},  # for many days
+        'next': {'value': [1, 2], 'flag': 'Next'},
+        'for': {'value': [3, 4], 'flag': 'For'},
+        'of': {'value': [3, 4], 'flag': 'Period of'},
+        'different': {'value': [1, 2], 'flag': 'Different'},
+        'successive': {'value': [1, 2], 'flag': 'Successive'},
+        'additional': {'value': [1, 2], 'flag': 'Additional'},
+        'within': {'value': [2, 3], 'flag': 'Within'},
+        # Yellow crystals of [Hg (CH2COCH3)(4-NO2pcyd)]n were grown after days
+        'after': {'value': [3, 4], 'flag': 'After'},
+        # 3 disappeared in the following days
+        'following': {'value': [1, 2], 'flag': 'Following'},
+        # Crystals were observed to lose solvent slowly and decompose in days to weeks when
+        'in': {'value': [7, 14], 'flag': 'In days to weeks'},
+        'over': {'value': [4, 5], 'flag': 'Over'}  # over days
     }
     if is_digit(string):
-        return {'value':[float(string)],'flag':''}
+        return {'value': [float(string)], 'flag': ''}
     else:
         return digit_numbers[string.lower()]
 
@@ -534,6 +617,7 @@ def sentence_containing_word(spacy_doc, word):
         if word in sent.text:
             return sent.text
 
+
 def sentence_containing_words(spacy_doc, words):
     '''
     function to return sentence containing word
@@ -543,17 +627,19 @@ def sentence_containing_words(spacy_doc, words):
             return sent.text
 
 
+def _multiplicity():
+    mult = ['mono', 'di', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa', 'nona',
+            'deca', 'undeca', 'dodeca', 'trideca', 'tetradeca', 'pentadeca', 'hexadeca', 'heptadeca',
+            'octadeca', 'nonadeca', 'icosa', 'cosa', 'henicosa', 'docoasa', 'tricosa', 'tetracosa', 'pentacosa',
+            'hexacosa', 'heptacosa', 'octacosa', 'nonacosa']
+    mult = '('+'|'.join(mult)+')-?'
+    return mult
+
 
 def get_ph(paragraph):
     pH_regex = r"(\d+\.\d+)\s*p\s*h|\s*p\s*h\s*(\d+\.\d+)|(\d+\.\d+)\s*(acidic|acid|neutral|base|basic)|\s*(acidic|acid|neutral|base|basic)\s*(\d+\.\d+)"
     matches = re.findall(pH_regex, paragraph)
     return matches
-
-
-def chemical_formula_regex(paragraph):
-    pattern = r'^([A-Z][a-z]*)(\((I{1,3}|IV|V|VI{1,3}|[VIX])\))?(\d*)([A-Z][a-z]*)(\d*)+$'
-    # print(re.findall(pattern, paragraph))
-    return  # re.compile(pattern)
 
 
 def find_ccdc_number(spacy_doc):
@@ -592,26 +678,44 @@ def extract_chemical_quantities(paragraph, chemicals_list):
     -------
     dictionary of keys (chemical name) and values (list of quantities and units)
     """
+    pre_conj = prepositions_and_conjunctions(
+    ) + ['h', "condensate", '', 'each', 'd', 'D', 'and']
     extracted_data = {}
+    pattern_to_filter = re.compile(r'^[Tt]afl[omn]$|[Tt]eflo[nm]$')
+    chemicals_list = [
+        chemical for chemical in chemicals_list if not pattern_to_filter.match(chemical)]
+    unit_pattern = re.compile(r'[mM][lL]|milliliter')
     for chemical in chemicals_list:
         tmp = []
-        adj_chemical = re.escape(chemical)
-
-        # pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(m[lL]|m[mM]ol|g|mg|[Mm]olar)\)'
+        adj_chemical = r'\[?'+re.escape(chemical)+r'\]?'
         pattern = rf'(\d+(?:\.\d+)?)\s*(?:([a-zA-Z]+))?\s+(?:of\s+)?({(adj_chemical)})|(?:({(adj_chemical)})\s+(\d+(?:\.\d+)?))\s*(?:([a-zA-Z]+))?$|{(adj_chemical)}\s*\(([\d.]+)\s*(\w+)\s*,\s*([\d.]+)\s*(\w+)\)|{adj_chemical}\s*\(([\d.]+)\s*(?:([a-zA-Z]+))\)'
-
         matches = re.findall(pattern, paragraph)
         for match in matches:
             match = [[match[i], match[i+1]] for i in range(0, len(match), 2)]
             match = [i for i in match if len(i) == 2]
-            match = [qty_unit for qty_unit in match if all(
-                string != '' for string in qty_unit)]
+            match = [{'quantity': qty_unit[0], 'unit': standardize_units(qty_unit[1])} for qty_unit in match if all(
+                string not in pre_conj for string in qty_unit)]
             tmp.extend(match)
         if chemical == 'H2O':
-            tmp = [qty_unit for qty_unit in tmp if qty_unit[1] == 'ml']
+            tmp = [qty_unit for qty_unit in tmp if unit_pattern.match(
+                qty_unit['unit'])]
         if len(tmp) > 0:
+            if chemical == 'DI':
+                chemical = 'deionised water'
+            elif chemical == 'H2O':
+                chemical = 'water'
+            if isinstance(chemical, tuple) or isinstance(chemical, list):
+                if len(chemical[0])> 0:
+                    print ('len', chemical[0])
+                    chemical = chemical[0]
+                elif len(chemical[1])> 0:
+                    chemical = chemical[1]
+                elif len(chemical[2])> 0:
+                    chemical = chemical[2]
+            else:
+                chemical = solvent_abbreviation(chemical)
             extracted_data[chemical] = tmp
-            extracted_data[chemical] = tmp
+            # extracted_data[chemical] = tmp
     return extracted_data
 
 
@@ -785,6 +889,7 @@ def all_elements():
     }
     return list(radius.keys())
 
+
 def get_unique(data):
     """
     Function to return unique values in a data structure as a list
@@ -794,3 +899,152 @@ def get_unique(data):
         if all_data not in unique:
             unique.append(all_data)
     return unique
+
+
+def metal_atom_dic():
+    '''
+    creating a reg pattern to find metal 
+    '''
+    metals_dic = {
+        'Li': '[Ll]ithium',
+        'Na': '[Ss]odium',
+        'Mg': '[Mm]agnesium',
+        'Al': '[Aa]lumin(ium|um|o)',
+        'Ca': '[cC]alcium',
+        'Sc': '[Ss]candium',
+        'K': '[pP]otassium',
+        'Ti': '[Tt]itanium|[Tt]itanous|[Tt]itanic',
+        'V': '[Vv]anadium|[vV]anadous|[Vv]anadic',
+        'Cr': '[Cc]hromium|[cC]hromous|[cC]hromic',
+        'Mn': '[Mm]anganese|[Mm]anganous|[Mm]anganic',
+        'Fe': '[Ii]ron|[Ff]errous|[Ff]erric',
+        'Co': '[Cc]obalt|[cC]obaltous|[Cc]obaltic',
+        'Ni': '[Nn]ickel|[nN]ickelous|[Nn]ickelic',
+        'Cu': '[Cc]opper|[cC]uprous|[Cc]upric',
+        'Zn': '[Zz]inc',
+        'Ha': 'Gallium',
+        'Rb': '[Rr]ubidium',
+        'Sr': '[Ss]trontium',
+        'Y': '[Yy]ttrium',
+        'Zr': '[Zz]irconium',
+        'Nb': '[Nn]iobium',
+        'Mo': '[Mm]olybdenum',
+        'Tc': 'Technetium',
+        'Ru': '[rR]uthenium',
+        'Rh': '[Rr]hodium',
+        'Pd': '[Pp]alladium',
+        'Cd': '[Cc]admium',
+        'In': '[Ii]ndium',
+        'Sn': '[tT]in|[sS]tannous|[Ss]tannic',
+        'Cs': '[Cc]esium',
+        'Ba': '[Bb]arium',
+        'La': '[lL]anthanium|[lL]anthanide',
+        'Ln': '[lL]anthanium|[lL]anthanide',
+        'Ce': '[Cc]erium',
+        'Pr': '[pP]raseodymium',
+        'Nd': '[Nn]eodymium',
+        'Pm': '[Pp]romethium',
+        'Sm': '[Ss]amarium',
+        'Eu': '[E]uropium',
+        'Gd': '[Gg]adolinium',
+        'Tb': '[Tt]erbium',
+        'Dy': '[Dd]ysprosium',
+        'Ho': '[Hh]olmium',
+        'Er': '[Ee]rbium',
+        'Tm': '[Tt]hulium',
+        'Yb': '[Yy]tterbium',
+        'Lu': '[Ll]utetium',
+        'Hf': '[Hh]afnium',
+        'Ta': '[Tt]antalum',
+        'W': '[Tt]ungsten',
+        'Re': '[Rr]henium',
+        'Os': '[Os]mium',
+        'Ir': '[Ii]ridium',
+        'Pt': '[Pp]latinum',
+        'Au': '[Gg]old|[aA]urous|[Aa]uric',
+        'Hg': '[Mm]ercury|[mM]ercurous|[m]Mercuric',
+        'Tl': '[Tt]hallium',
+        'PB': '[Ll]ead|[pP]lumbous|[Pp]lumbic',
+        'Bi': '[Bb]ismuth',
+        'Po': '[Pp]olonium',
+        'Fr': '[Ff]rancium',
+        'Ra': '[Rr]adium',
+        'Ac': '[Aa]ctinium',
+        'Th': '[Tt]horium',
+        'Pa': '[Pp]rotactinium',
+        'U': '[Uu]ranium',
+        'Np': '[Nn]eptunium',
+        'PU': '[Pp]lutonium',
+        'Am': '[Aa]mericium',
+        'Cm': '[Cc]urium',
+        'Bk': '[Bb]erkelium',
+        'Cf': '[cC]alifornium',
+        'Es': '[eE]insteinium',
+        'Fm': '[Ff]ermium',
+        'Md': '[mM]endelevium',
+        'No': '[Nn]obelium',
+        'Lr': '[Ll]awrencium',
+        'Rf': '[Rr]utherfordium',
+        'Db': '[Dd]ubnium',
+        'Sg': '[Ss]eaborgium',
+        'Bh': '[Bb]ohrium',
+        'Hs': '[Hh]assium',
+        'Mt': '[Mm]eitnerium',
+        'Ds': '[dD]armstadtium',
+        'Rg': '[Rr]oentgenium',
+        'Cn': '[cC]opernicium',
+        'Uut': '[Uu]nuntrium',
+        'Fl': '[Ff]levorium',
+        'Lv': '[Ll]ivermorium'
+    }
+    # full_name = [metals_dic[metal] for metal in list_of_metals]
+    # pattern = r'\b('+'|'.join(full_name+list_of_metals) +r')\b'
+    return metals_dic
+
+
+def standardize_units(unit):
+    unit = unit.lower()
+    all_units = {
+        'ml': 'milliliter',
+        'g': 'gram',
+        'mg': 'milligram',
+        'gm': 'milligram',
+        'mmol': 'millimole',
+        'µmol': 'micromole',
+        'µg': 'microgram',
+        'µl': 'microliter',
+        'l': 'liter',
+        'kg': 'kilogram',
+        'm': 'molar',
+        'µm': 'micromolar'
+    }
+    if unit in list(all_units.keys()):
+        return all_units[unit]
+    else:
+        return unit
+
+
+def prepositions_and_conjunctions():
+    prep = ['aboard', 'about', 'above', 'across',
+            'after', 'against', 'along', 'amid',
+            'amidst', 'among', 'around', 'as', 'at',
+            'before', 'behind', 'below', 'beneath',
+            'beside', 'between', 'beyond', 'but', 'by',
+            'concerning', 'considering', 'despite', 'down',
+            'during', 'except', 'for', 'from', 'in',
+            'inside', 'into', 'like', 'near', 'of',
+            'off', 'on', 'onto', 'out', 'outside',
+            'over', 'past', 'regarding', 'round',
+            'since', 'through', 'throughout', 'to',
+            'toward', 'towards', 'under', 'underneath',
+            'unlike', 'until', 'unto', 'up', 'upon',
+            'with', 'within', 'without', "each"
+            ]
+    conj = ['and', 'but', 'or', 'yet', 'so', 'for',
+            'nor', 'although', 'as', 'because',
+            'before', 'if', 'once', 'since',
+            'than', 'that', 'though', 'till',
+            'unless', 'until', 'when', 'where',
+            'while'
+            ]
+    return prep+conj

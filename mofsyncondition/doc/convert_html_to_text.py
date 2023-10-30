@@ -38,9 +38,11 @@ def html_2_text2(html_file):
     """
     with open(html_file, 'r', encoding="utf-8") as file_object:
         html_object = file_object.read()
-
+    # headings = []
     # Parse the HTML content with BeautifulSoup
     soup = BeautifulSoup(html_object, 'html.parser')
+    # for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5']):
+    #     headings.append(heading.text.strip())
 
     # Remove unwanted elements from the HTML document
 
@@ -51,3 +53,4 @@ def html_2_text2(html_file):
     # Extract the text from the modified HTML document
     text = inscriptis.get_text(str(soup))
     return text
+
