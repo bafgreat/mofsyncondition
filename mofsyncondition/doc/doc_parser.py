@@ -90,7 +90,8 @@ def text_2_paragraphs(plain_text):
     # regular expression pattern to match paragraph boundaries
     # pattern = r"(?<=\n\n|^)(?:\t| {4}).*?(?=\n\n|$)"
     paragraphs = []
-    pattern = r"(\n\n|\n|^)(?:\t|\s{2,}).*?(?=\n\n|\n|$)"
+    # pattern = r"(\n\n|\n|^)(?:\t|\s{2,}).*?(?=\n\n|\n|$)"
+    pattern = r"(\n{2,}|\n)(\t|\s{2,}).*?(?=\n{2,}|\n|$)"
     paragraph_match_patern = re.finditer(pattern, plain_text, flags=re.DOTALL)
     for match in paragraph_match_patern:
         text_span = match.span()

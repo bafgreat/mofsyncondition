@@ -2,28 +2,35 @@
 from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
+<<<<<<< HEAD
 import os
+=======
+# import os
+>>>>>>> 9253cec (fixed)
 import re
-import glob
+# import glob
 import spacy
+# import ast
 from spacy.matcher import PhraseMatcher
 import en_core_web_sm
 from mofsyncondition.conditions import conditions_extraction
 from mofsyncondition.conditions import chemical_entity_regex
-from mofsyncondition.doc.convert_html_to_text import html_2_text2
 from mofsyncondition.doc import doc_parser
 from mofsyncondition.synparagraph import extract_synthesis_paragraphs
-from mofsyncondition.io import filetyper
 nlp = spacy.load("en_core_web_sm")
 
 
 def regex_content(all_tokens, pattern):
     contents = []
-    for id, token in enumerate(all_tokens):
+    for idx, token in enumerate(all_tokens):
         match = re.search(pattern, token)
         if match:
             if token == 'evaporation' or token == 'Evaporation':
+<<<<<<< HEAD
                 if 'slow' or 'Slow' in [all_tokens[id-1], all_tokens[id-2], all_tokens[id-3]]:
+=======
+                if 'slow' or 'Slow' in [all_tokens[idx-1], all_tokens[idx-2], all_tokens[idx-3]]:
+>>>>>>> 9253cec (fixed)
                     contents.append('slow evaporation')
             else:
                 contents.append(token)
@@ -42,11 +49,11 @@ def select_content(all_tokens, list_content):
 
 def synthetic_method(tokens):
     """
-    A function that converts a document into document into 
+    A function that converts a document into document into
     token using spacy
      Parameters
     ----------
-    plain_text: str.type 
+    plain_text: str.type
 
     Returns
     -------
@@ -63,11 +70,11 @@ def synthetic_method(tokens):
 
 def solvents_in_text(tokens):
     """
-    A function that converts a document into document into 
+    A function that converts a document into document into
     token using spacy
      Parameters
     ----------
-    plain_text: str.type 
+    plain_text: str.type
 
     Returns
     -------
@@ -83,11 +90,11 @@ def solvents_in_text(tokens):
 
 def metal_precursors_in_text(tokens):
     """
-    A function that converts a document into document into 
+    A function that converts a document into document into
     token using spacy
-     Parameters
+    Parameters
     ----------
-    plain_text: str.type 
+    plain_text: str.type
 
     Returns
     -------
@@ -98,7 +105,11 @@ def metal_precursors_in_text(tokens):
     metals = list(metals.items())
     all_metals = '|'.join(
         [metal for metal_tuple in metals for metal in metal_tuple])
+<<<<<<< HEAD
     multiplicity = chemical_entity_regex._multiplicity()
+=======
+    multiplicity = chemical_entity_regex.iupac_multiplicity()
+>>>>>>> 9253cec (fixed)
     pattern = r'\b'+multiplicity+all_metals+r'\b'
     pattern = re.compile(pattern)
 
@@ -124,7 +135,7 @@ def all_reaction_temperature(token, par_doc):
     A function that extract time from tokens
     Parameters
     ----------
-    token: str.type 
+    token: str.type
 
     Returns
     -------
@@ -145,7 +156,11 @@ def find_organic_reagents(quantity, all_solvents):
     metals = list(metals.items())
     all_metals = '|'.join(
         [metal for metal_tuple in metals for metal in metal_tuple])
+<<<<<<< HEAD
     multiplicity = chemical_entity_regex._multiplicity()
+=======
+    multiplicity = chemical_entity_regex.iupac_multiplicity()
+>>>>>>> 9253cec (fixed)
     pattern = r'\b'+multiplicity+all_metals+r'\b'
     pattern = re.compile(pattern)
     for element in list(quantity.keys()):
@@ -188,7 +203,7 @@ def all_reaction_time(token, par_doc):
     A function that extract reaction time from tokens
     Parameters
     ----------
-    token: str.type 
+    token: str.type
 
     Returns
     -------
@@ -218,7 +233,11 @@ def correct_abbreviations(substrates, abbreviation, chemical_list):
                         if re.match(abb, chemical, re.IGNORECASE) and abbreviation[abb] in chemical_list:
                             substrates[i] = abbreviation[abb]
                             break
+<<<<<<< HEAD
             except:
+=======
+            except Exception:
+>>>>>>> 9253cec (fixed)
                 pass
 
     elif isinstance(substrates, dict):
@@ -234,11 +253,16 @@ def correct_abbreviations(substrates, abbreviation, chemical_list):
                             substrates[renamed_chemical] = substrates.pop(
                                 chemical)
                             break
+<<<<<<< HEAD
         except:
+=======
+        except Exception:
+>>>>>>> 9253cec (fixed)
             pass
     return substrates
 
 
+<<<<<<< HEAD
 def synthesis_condition(plain_text, name_from_json=None):
     """
     """
@@ -249,6 +273,37 @@ def synthesis_condition(plain_text, name_from_json=None):
     warning = chemical_entity_regex.synthetic_warning(paragraphs)
     synthetic_paragraphs = extract_synthesis_paragraphs.all_synthesis_paragraphs(
         plain_text)
+=======
+def correct_quantities(substrates):
+    '''
+    check whether there are any abbreviatons in the list of chemicals and fix it
+    '''
+    if isinstance(substrates, list):
+        for i, chemical in enumerate(substrates):
+            if isinstance(chemical, tuple) or isinstance(chemical, list) or isinstance(chemical, dict):
+                substrates[i] = chemical[0]
+    elif isinstance(substrates, dict):
+        for chemical in list(substrates.keys()):
+            if isinstance(chemical, tuple) or isinstance(chemical, list) or isinstance(chemical, dict):
+                chem = chemical[0]
+                substrates[chem] = substrates.pop(chemical)
+    return substrates
+
+
+def synthesis_condition(paragraphs, name_from_json=None):
+    """
+    """
+    experimental_condition = {}
+    # paragraphs = doc_parser.text_2_paragraphs(plain_text)
+
+    # all_chemical_names, _, abbreviation = doc_parser.chemdata_extractor(
+    #     plain_text)
+
+    warning = chemical_entity_regex.synthetic_warning(paragraphs)
+    synthetic_paragraphs = extract_synthesis_paragraphs.all_synthesis_paragraphs(
+        paragraphs)
+
+>>>>>>> 9253cec (fixed)
     dic_synthetic_paragraphs = indices_of_senthetic_paragraphs(
         paragraphs, synthetic_paragraphs)
     elements_symbols = chemical_entity_regex.all_elements()
@@ -285,12 +340,23 @@ def synthesis_condition(plain_text, name_from_json=None):
             set(organic_reagents)) if not i in metal_salt]
         solvents = [i for i in list(set(all_solvents))
                     if i in list(quantities.keys())]
+<<<<<<< HEAD
         conditions['mof_metal_precursor'] = list(
             set(correct_abbreviations(metal_precursor, abbreviation, all_chemical_names)))
         conditions['mof_organic_linker_reagent'] = [i for i in list(set(correct_abbreviations(
             organic_reagents, abbreviation, all_chemical_names))) if i not in ['water', 'Water']]
         conditions['mof_solvent'] = list(
             set(correct_abbreviations(solvents, abbreviation, all_chemical_names)))
+=======
+        conditions['mof_metal_precursor'] = correct_quantities(
+            list(set(metal_precursor)))
+        # set(correct_abbreviations(metal_precursor, abbreviation, all_chemical_names)))
+        conditions['mof_organic_linker_reagent'] = correct_quantities([i for i in list(
+            set(organic_reagents)) if i not in ['water', 'Water']])
+        # organic_reagents, abbreviation, all_chemical_names))) ]
+        conditions['mof_solvent'] = correct_quantities(list(set(solvents)))
+        # set(correct_abbreviations(solvents, abbreviation, all_chemical_names)))
+>>>>>>> 9253cec (fixed)
         conditions['mof_reaction_temperature'] = list(set(reaction_temp))
         conditions['mof_melting_temperature'] = list(set(melting_temp))
         conditions['mof_crystallization_temperature'] = list(
@@ -318,8 +384,14 @@ def synthesis_condition(plain_text, name_from_json=None):
             conditions['mof_synthesis_precaution'] = warning[warning_value[0]].strip()
         else:
             conditions['mof_synthesis_precaution'] = 'no warning'
+<<<<<<< HEAD
         conditions['mof_reaction_quanties'] = correct_abbreviations(
             quantities, abbreviation, all_chemical_names)
+=======
+        conditions['mof_reaction_quanties'] = correct_quantities(
+            quantities)  # correct_abbreviations(
+        # quantities, abbreviation, all_chemical_names)
+>>>>>>> 9253cec (fixed)
         if len(conditions['mof_metal_precursor']) > 0 and len(conditions['mof_reaction_quanties']) > 0:
             experimental_condition['step_'+str(steps)] = conditions
     return experimental_condition
@@ -341,6 +413,7 @@ def indices_of_senthetic_paragraphs(paragraphs, synthetic_paragraphs):
             matching_paragraphs[i] = paragraph
     return matching_paragraphs
 
+<<<<<<< HEAD
 
 def indices_of_headings(paragraphs, headings):
     '''
@@ -373,10 +446,14 @@ def compile_synthesis_condition(html_file, ligan_data):
 
 
 def run_condition_extraction(html_files):
+=======
+
+def indices_of_headings(paragraphs, headings):
+>>>>>>> 9253cec (fixed)
     '''
-    function that takes an html file and create a database containing 
-    extracted synthesis conditions
+    script to match
     '''
+<<<<<<< HEAD
     synthesis_data = {}
     for html_file in html_files:
         # try:
@@ -420,3 +497,16 @@ external_drive_path = os.path.abspath('/Volumes/X9 Pro/All_HTML')
 path_to_html = '../db/html'
 # run(path_to_html)
 run(external_drive_path)
+=======
+    # nlp = spacy.load("en_core_web_sm")
+    all_headings = {}
+    matcher = PhraseMatcher(nlp.vocab)
+    patterns = [nlp(heading) for heading in headings]
+    matcher.add("Headings", None, *patterns)
+    for i, paragraph in enumerate(paragraphs):
+        doc = nlp(paragraph)
+        matches = matcher(doc)
+        if matches:
+            all_headings[i] = paragraph
+    return all_headings
+>>>>>>> 9253cec (fixed)

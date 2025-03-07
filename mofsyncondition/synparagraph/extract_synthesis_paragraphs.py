@@ -10,18 +10,25 @@ from mofsyncondition.doc import doc_parser
 from mofsyncondition.io.filetyper import load_data
 
 
+<<<<<<< HEAD
 def all_synthesis_paragraphs(plain_text, model='NN_tfv'):
+=======
+def all_synthesis_paragraphs(paragraphs, model='NN_tfv'):
+>>>>>>> 9253cec (fixed)
     '''
     Function to extract paragraphs describing synthesis 
     Parameters
     ----------
-    plain_text: plain text, which could be a full article 
+    paragraphs: list of paragraphs
 
     Returns
     -------
     list of paragraphs discribing sythensis conditions
     '''
+<<<<<<< HEAD
     paragraphs = doc_parser.text_2_paragraphs(plain_text)
+=======
+>>>>>>> 9253cec (fixed)
     vectorizer_loader = load_data(f'../models/vectorizers/{model}.pkl')
     ml_model = load_data(f'../models/ml_models/{model}_model.pkl')
     vectorizer = vectorizer_loader[f'{model}']
