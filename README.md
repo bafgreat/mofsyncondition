@@ -18,7 +18,7 @@ Extracting synthesis conditions from MOF literature is a key challenge in data-d
 
 ---
 
-## 🧠 Key Features
+## Key Features
 
 - Support for HTML and PDF-derived text inputs
 - ML-based identification of synthesis protocols
