@@ -2,12 +2,9 @@
 from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
-import ast
 import re
 import json
 import os
-import sys
-import glob
 from mofsyncondition.doc.convert_html_to_text import html_2_text2
 from mofsyncondition.io import filetyper
 
@@ -158,9 +155,11 @@ def compile_synthesis_condition(html_file):
     Compile synthesis condition
     """
     paragraphs = html_2_text2(html_file)
+
     _, _, abbreviations =  doc_parser.chemdata_extractor(" ".join(paragraphs))
     synthetic_paragraphs = extract_synthesis_paragraphs.all_synthesis_paragraphs(
         paragraphs)
+    # print(synthetic_paragraphs )
     all_paragraphs = {}
     chemical_data = {}
     for steps, paragraph in enumerate(synthetic_paragraphs):
@@ -201,44 +200,6 @@ def compile_synthesis_condition(html_file):
 
 
 
-# path_to_chemicals = os.path.abspath("/Volumes/X9/src/Python/fairmofsyncondition/data/json_data/all_chemical_data.json")
-# path_to_paragraphs = os.path.abspath("/Volumes/X9/src/Python/fairmofsyncondition/data/json_data/path_to_paragraphs.json")
 
-refcode_doi = get_refcodes_to_doi("../db/csv/DIO_2021_and_other_properties.csv")
-
-paragraphs_folder = os.path.abspath('/Volumes/X9/src/Python/fairmofsyncondition/data/paragraphs')
-chemical_folder = os.path.abspath('/Volumes/X9/src/Python/fairmofsyncondition/data/chemicals')
-
-seen = glob.glob(f"{paragraphs_folder}/*json")
-seen = [os.path.basename(i).split('.')[0] for i in seen]
-print(seen)
-
-alpha = ["J", "K", "L", "M", "N", "O", "P", "Q", "R"]
-# data_chemicals = filetyper.load_data(path_to_chemicals)
-# data_paragraphs = filetyper.load_data(path_to_paragraphs)
-print('Writing')
-# print (len(data_chemicals),  len(data_paragraphs))
-# for alp in alpha:
-alpha = sys.argv[1]
-path_to_html = sorted(glob.glob(os.path.abspath(f'/Volumes/X9/All_HTML/{alpha}*html')))
-for html_file in path_to_html:
-    data_chemicals = {}
-    data_paragraphs = {}
-    try:
-        refcode = os.path.basename(html_file).split('.')[0]
-        if refcode not in seen:
-            print(refcode)
-            doi = refcode_doi.get(refcode, refcode)
-        # if doi not in data_chemicals:
-            chemical_data, all_paragraphs = compile_synthesis_condition(html_file)
-            if len(chemical_data) > 0:
-                data_chemicals[doi] = chemical_data
-                data_paragraphs[doi] = all_paragraphs
-
-                path_to_chemicals = os.path.join(chemical_folder, f'{refcode}.json')
-                path_to_paragraphs = os.path.join(paragraphs_folder, f'{refcode}.json')
-                filetyper.write_json(data_chemicals, path_to_chemicals)
-                filetyper.write_json(data_paragraphs ,path_to_paragraphs)
-    except Exception as e:
-        print(f"Error in {html_file}: {e}")
-
+chemical_data, all_paragraphs = compile_synthesis_condition("LICGOW.html")
+print(chemical_data)

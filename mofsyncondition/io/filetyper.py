@@ -11,62 +11,8 @@ import codecs
 from zipfile import ZipFile
 import numpy as np
 import pandas as pd
-from ase import Atoms
-import ase
+from importlib.resources import files
 
-
-
-
-class AtomsEncoder(json.JSONEncoder):
-    '''
-    ASE atom type encorder for json to enable serialising
-    ase atom object.
-    '''
-
-    def default(self, encorder_obj):
-        '''
-        define different encoder to serialise ase atom objects
-        '''
-        if isinstance(encorder_obj, Atoms):
-            coded = dict(positions=[list(pos) for pos in encorder_obj.get_positions()], lattice_vectors=[
-                         list(c) for c in encorder_obj.get_cell()], labels=list(encorder_obj.get_chemical_symbols()))
-            if len(encorder_obj.get_cell()) == 3:
-                coded['periodic'] = ['True', 'True', 'True']
-            coded['n_atoms'] = len(list(encorder_obj.get_chemical_symbols()))
-            coded['atomic_numbers'] = encorder_obj.get_atomic_numbers().tolist()
-            keys = list(encorder_obj.info.keys())
-            if 'atom_indices_mapping' in keys:
-                info = encorder_obj.info
-                coded.update(info)
-            return coded
-        if isinstance(encorder_obj, ase.spacegroup.Spacegroup):
-            return encorder_obj.todict()
-        return json.JSONEncoder.default(self, encorder_obj)
-
-def json_to_aseatom(data, filename):
-    '''
-    serialise an ase atom type and write as json
-    '''
-    encoder = AtomsEncoder
-    with open(filename, 'w', encoding='utf-8') as f_obj:
-        json.dump(data, f_obj, indent=4, sort_keys=False, cls=encoder)
-    return
-
-
-def append_json_atom(data,  encoder, filename):
-    '''
-    append a data containing an ase atom object
-    '''
-    with open(filename, 'r+', encoding='utf-8') as f_obj:
-        # First we load existing data into a dict.
-        file_data = json.load(f_obj)
-        # Join new_data with file_data inside emp_details
-        file_data.update(data)
-        # Sets file's current position at offset.
-        f_obj.seek(0)
-        # convert back to json.
-
-        json.dump(data, f_obj, indent=4, sort_keys=False, cls=encoder)
 
 def numpy_to_json(ndarray, file_name):
     '''
@@ -83,6 +29,7 @@ def list_2_json(list_obj, file_name):
     '''
     json.dump(list_obj, codecs.open(file_name, 'w', encoding='utf-8'))
 
+
 def write_json(json_obj, file_name):
     '''
     write a python dictionary object to json
@@ -91,6 +38,7 @@ def write_json(json_obj, file_name):
     json_object = json.dumps(json_obj, indent=4, sort_keys=True)
     with open(file_name, "w", encoding='utf-8') as outfile:
         outfile.write(json_object)
+
 
 def json_to_numpy(json_file):
     '''
@@ -120,11 +68,8 @@ def append_json(new_data, filename):
         file.seek(0)
         # convert back to json.
         json.dump(file_data, file, indent=4, sort_keys=True)
-<<<<<<< HEAD
-        
-=======
 
->>>>>>> 9253cec (fixed)
+
 def read_json(file_name):
     '''
     load a json file
@@ -206,6 +151,7 @@ def read_zip(zip_file):
     content.close()
     return content
 
+
 def remove_trailing_commas(json_file):
     '''
     Function to clean training commas in json files.
@@ -252,7 +198,8 @@ def load_data(filename):
     function that recognises file extenion and chooses the correction
     function to load the data.
     '''
-    file_ext = filename[filename.rindex('.')+1:]
+    # file_ext = filename[filename.rindex('.')+1:]
+    file_ext = os.path.basename(filename).split('.')[-1]
     if file_ext == 'json':
         data = read_json(filename)
     elif file_ext == 'csv':
@@ -264,3 +211,9 @@ def load_data(filename):
     else:
         data = get_contents(filename)
     return data
+
+
+def load_model(model_name):
+    vectorizer_loader = load_data(files("mofsyncondition").joinpath(f"models/vectorizers/{model_name}.pkl"))
+    ml_model = load_data(files("mofsyncondition").joinpath(f"models/ml_models/{model_name}_model.pkl"))
+    return vectorizer_loader,  ml_model

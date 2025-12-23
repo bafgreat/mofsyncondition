@@ -3,8 +3,6 @@ from __future__ import print_function, unicode_literals
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
-from rdkit import Chem
-from rdkit.Chem import AllChem
 import requests
 
 # Constants for external API services

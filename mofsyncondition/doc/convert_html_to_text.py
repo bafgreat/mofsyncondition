@@ -8,7 +8,7 @@ import fitz
 import re
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
-from pdfdataextractor import Reader
+# from pdfdataextractor import Reader
 
 
 def find_xml_namespace(markup_file, name_pattern):
@@ -64,26 +64,25 @@ def html_2_text2(markup_file):
     -------
     plain text : str.type
     """
-<<<<<<< HEAD
-    with open(html_file, 'r', encoding="utf-8") as file_object:
-        html_object = file_object.read()
-    # headings = []
-    # Parse the HTML content with BeautifulSoup
-    soup = BeautifulSoup(html_object, 'html.parser')
-    # for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5']):
-    #     headings.append(heading.text.strip())
 
-    # Remove unwanted elements from the HTML document
+    # with open(html_file, 'r', encoding="utf-8") as file_object:
+    #     html_object = file_object.read()
+    # # headings = []
+    # # Parse the HTML content with BeautifulSoup
+    # soup = BeautifulSoup(html_object, 'html.parser')
+    # # for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5']):
+    # #     headings.append(heading.text.strip())
 
-    for element in soup(['figure', 'figcaption', 'meta', 'author', 'affiliation', 'abstract',
-                         'cite', 'table', 'references', 'acronym']):
-        element.extract()
+    # # Remove unwanted elements from the HTML document
 
-    # Extract the text from the modified HTML document
-    text = inscriptis.get_text(str(soup))
-    return text
+    # for element in soup(['figure', 'figcaption', 'meta', 'author', 'affiliation', 'abstract',
+    #                      'cite', 'table', 'references', 'acronym']):
+    #     element.extract()
 
-=======
+    # # Extract the text from the modified HTML document
+    # text = inscriptis.get_text(str(soup))
+    # return text
+
     text = []
     ext = markup_file[markup_file.rindex('.')+1:]
     if ext == 'html':
@@ -167,4 +166,4 @@ def pdfataextractor(pdf_path):
     for text in plain_text.split('\n'):
         all_text.append(inscriptis.get_text(text))
     return all_text
->>>>>>> 9253cec (fixed)
+

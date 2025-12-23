@@ -3,7 +3,7 @@ from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
-import chemdataextractor as cde
+# import chemdataextractor as cde
 import spacy
 from mofsyncondition.doc import convert_html_to_text
 from mofsyncondition.conditions.organic_reagents_from_iupac_name import find_parentheses, find_square_brackets
@@ -15,7 +15,7 @@ def unclosed_brackets(text):
     Algorithm
     1) Search for all balanced brackets
     2) Seacrh for all bra and kets
-    3) loop through the list of bra and kets and find indices that are not present in the 
+    3) loop through the list of bra and kets and find indices that are not present in the
     list of all balanced brackets
     4) Remove all characters at the identified indices
     """
@@ -35,11 +35,11 @@ def unclosed_brackets(text):
 
 def tokenize_doc(plain_text):
     """
-    A function that converts a document into document into 
+    A function that converts a document into document into
     token using spacy
      Parameters
     ----------
-    plain_text: str.type 
+    plain_text: str.type
 
     Returns
     -------
@@ -53,17 +53,17 @@ def tokenize_doc(plain_text):
 
 def are_words_in_same_sentence(spacy_doc, word1, word2):
     """
-    A function that checks whether two words in a document are 
+    A function that checks whether two words in a document are
     found in the same sentence.
      Parameters
     ----------
     spacy_doc: npl(text)
-    word1 : string text 
-    word2 : string text  
+    word1 : string text
+    word2 : string text
 
     Returns
     -------
-    Bolean 
+    Bolean
     """
     for token in spacy_doc:
         if token.text == word1:
@@ -77,37 +77,43 @@ def are_words_in_same_sentence(spacy_doc, word1, word2):
 
 def text_2_paragraphs(plain_text):
     """
-    A function that splits a text file into 
-    paragrphs and return a list of paragrphs. 
+    A function that splits a text file into
+    paragrphs and return a list of paragrphs.
     Parameters
     ----------
-    plain_text  
+    plain_text
 
     Returns
     -------
     list of paragraphs
     """
+    paragraphs = []
     # regular expression pattern to match paragraph boundaries
     # pattern = r"(?<=\n\n|^)(?:\t| {4}).*?(?=\n\n|$)"
-    paragraphs = []
+    if isinstance(plain_text, list):
+        plain_text = " ".join(plain_text)
     # pattern = r"(\n\n|\n|^)(?:\t|\s{2,}).*?(?=\n\n|\n|$)"
     pattern = r"(\n{2,}|\n)(\t|\s{2,}).*?(?=\n{2,}|\n|$)"
     paragraph_match_patern = re.finditer(pattern, plain_text, flags=re.DOTALL)
+    counter = 0
     for match in paragraph_match_patern:
+        print(counter )
         text_span = match.span()
         paragraph = plain_text[text_span[0]:text_span[1]]
+        print(paragraph)
         paragraphs.append(paragraph)
+        counter += 1
     return paragraphs
 
 
 def paragraph_containing_word(paragraphs, specific_word):
     """
-    A function to extract paragraph containing 
+    A function to extract paragraph containing
     a specific text
     Parameters
     ----------
-    paragraphs : list of paragraphs 
-    specific_word : word   
+    paragraphs : list of paragraphs
+    specific_word : word
 
     Returns
     -------
@@ -139,12 +145,12 @@ def chemdata_extractor(plain_text):
     chemdataextractor.
     Parameters
     ----------
-    plain_text  
+    plain_text
 
     Returns
     -------
-    name_of_chemicals: list of chemical names  
-    records : cde records 
+    name_of_chemicals: list of chemical names
+    records : cde records
     abbreviations : dictionary containing abbreviation
     '''
     cde_doc = cde.Document(plain_text)

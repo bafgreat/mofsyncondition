@@ -19,14 +19,14 @@ def paragraph_classifier(text_data_path, model_key='LR', vectorize_key="CV"):
     are describing the synthesis conditions.
 
     '''
-    df = load_data(text_data_path)
+    d_frame = load_data(text_data_path)
 
     # Create new column called kfolf and fill with -1
-    df['kfold'] = -1
+    d_frame['kfold'] = -1
 
     # The next step is to randomize the rows of the data
 
-    df = df.sample(frac=1).reset_index(drop=True)
+    df = d_frame.sample(frac=1).reset_index(drop=True)
 
     # extract labels
     y_label = df.sentiment.values
@@ -88,16 +88,16 @@ def paragraph_classifier(text_data_path, model_key='LR', vectorize_key="CV"):
     return
 
 
-file_path = '../db/csv/Training_data_for_sentiment_analysis.xlsx'
+# file_path = '../db/csv/Training_data_for_sentiment_analysis.xlsx'
 # paragraph_classifier(file_path, model_key='LR', vectorize_key="CV")
 # paragraph_classifier(file_path, model_key='NB', vectorize_key="tfv")
 # paragraph_classifier(file_path, model_key='LR', vectorize_key="tfv")
 # paragraph_classifier(file_path, model_key='NB', vectorize_key="CV")
-df = load_data(file_path)
-y_label = df.sentiment.values
-positive = df[df['sentiment'] == 1]
-print (len(positive))
+# df = load_data(file_path)
+# y_label = df.sentiment.values
+# positive = df[df['sentiment'] == 1]
+# print(len(positive))
 
-print(len(y_label))
+# print(len(y_label))
 
-print((len(positive)/len(y_label))*100)
+# print((len(positive)/len(y_label))*100)
