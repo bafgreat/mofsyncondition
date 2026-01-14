@@ -3,12 +3,17 @@ from __future__ import print_function, unicode_literals
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
+from mofsyncondition.conditions.curate_linker_name import to_remove, get_metals
 
 # https://opsin.ch.cam.ac.uk
 
+""" A collection of functions to help extract organic reagents from IUPAC names
+"""
 
 def check_parentheses(s):
-    """ Return True if the parentheses in string s match, otherwise False. """
+    """
+    Return True if the parentheses in string s match, otherwise False.
+    """
     j = 0
     for c in s:
         if c == ')':
@@ -20,20 +25,55 @@ def check_parentheses(s):
     return j == 0
 
 
-def IUPAC_multiplicity():
-    mult = ['mono', 'di', 'tri', 'tetra', 'penta', 'hexa', 'hepta', 'octa', 'nona',
-            'deca', 'undeca', 'dodeca', 'trideca', 'tetradeca', 'pentadeca', 'hexadeca', 'heptadeca',
-            'octadeca', 'nonadeca', 'icosa', 'cosa', 'henicosa', 'docoasa', 'tricosa', 'tetracosa', 'pentacosa',
-            'hexacosa', 'heptacosa', 'octacosa', 'nonacosa']
+def iupac_multiplicity():
+    """
+    Docstring for iupac_multiplicity
+    """
+    mult = ['mono',
+            'di',
+            'tri',
+            'tetra',
+            'penta',
+            'hexa',
+            'hepta',
+            'octa',
+            'nona',
+            'deca',
+            'undeca',
+            'dodeca',
+            'trideca',
+            'tetradeca',
+            'pentadeca',
+            'hexadeca',
+            'heptadeca',
+            'octadeca',
+            'nonadeca',
+            'icosa',
+            'cosa',
+            'henicosa',
+            'docoasa',
+            'tricosa',
+            'tetracosa',
+            'pentacosa',
+            'hexacosa',
+            'heptacosa',
+            'octacosa',
+            'nonacosa'
+            ]
     return mult
 
 
 def find_parentheses(s):
-    """ Find and return the location of the matching parentheses pairs in s.
-    https://scipython.com/blog/parenthesis-matching-in-python/ 
+    """
+    Find and return the location of the matching parentheses pairs in s.
+    https://scipython.com/blog/parenthesis-matching-in-python/
     Given a string, s, return a dictionary of start: end pairs giving the
     indexes of the matching parentheses in s. Suitable exceptions are
     raised if s contains unbalanced parentheses.
+
+    parameter:
+    -----------
+        s : string to be searched
 
     """
     # The indexes of the open parentheses are stored in a stack, implemented
@@ -47,17 +87,22 @@ def find_parentheses(s):
         elif c == ')':
             try:
                 parentheses_locs[stack.pop()] = i
-            except:
+            except Exception:
                 unclosed.append(i)
     return parentheses_locs
 
 
 def find_curl_brackets(s):
-    """ Find and return the location of the matching parentheses pairs in s.
-    https://scipython.com/blog/parenthesis-matching-in-python/ 
+    """
+    Find and return the location of the matching parentheses pairs in s.
+    https://scipython.com/blog/parenthesis-matching-in-python/
     Given a string, s, return a dictionary of start: end pairs giving the
     indexes of the matching parentheses in s. Suitable exceptions are
     raised if s contains unbalanced parentheses.
+
+    parameter:
+    -----------
+        s : string to be searched
 
     """
     # The indexes of the open parentheses are stored in a stack, implemented
@@ -77,11 +122,16 @@ def find_curl_brackets(s):
 
 
 def find_square_brackets(s):
-    """ Find and return the location of the matching parentheses pairs in s.
-    https://scipython.com/blog/parenthesis-matching-in-python/ 
+    """
+    Find and return the location of the matching parentheses pairs in s.
+    https://scipython.com/blog/parenthesis-matching-in-python/
     Given a string, s, return a dictionary of start: end pairs giving the
     indexes of the matching parentheses in s. Suitable exceptions are
     raised if s contains unbalanced parentheses.
+
+    parameter:
+    -----------
+        s : string to be searched
 
     """
     # The indexes of the open parentheses are stored in a stack, implemented
@@ -100,15 +150,23 @@ def find_square_brackets(s):
     return parentheses_locs
 
 
-def Remove_unclosed_brackets(s):
+def remove_unclosed_brackets(s):
     """
     A simple algorithm to remove unbalanced brackets
-    Algorithm
-    1) Search for all balanced brackets
-    2) Seacrh for all bra and kets
-    3) loop through the list of bra and kets and find indices that are not present in the 
-    list of all balanced brackets
-    4) Remove all characters at the identified indices
+
+    parameter:
+    -----------
+        s : string to be searched
+
+
+    Algorithm:
+    -----------
+        1) Search for all balanced brackets
+        2) Seacrh for all bra and kets
+        3) loop through the list of bra and kets and
+        find indices that are not present in the
+        list of all balanced brackets
+        4) Remove all characters at the identified indices
     """
     new_list_1 = list(find_parentheses(s).keys()) + \
         list(find_parentheses(s).values())
@@ -116,28 +174,32 @@ def Remove_unclosed_brackets(s):
         list(find_square_brackets(s).values())
     new_list_3 = list(find_square_brackets(s).keys()) + \
         list(find_square_brackets(s).values())
-    All_brackets = new_list_1 + new_list_2 + new_list_3
+    all_brackets = new_list_1 + new_list_2 + new_list_3
     brackets = [i for i in range(len(s)) if s[i] == '(' or s[i] == ')' or s[i]
                 == '{' or s[i] == '}' or s[i] == '[' or s[i] == '}']
-    To_remove = [i for i in brackets if not i in All_brackets]
+    remove_ = [i for i in brackets if i not in all_brackets]
     new_list = list(s)
-    for i, c in enumerate(new_list):
-        if i in To_remove:
+    for i, _ in enumerate(new_list):
+        if i in remove_:
             new_list[i] = ''
     new_list = ''.join(new_list)
     return new_list
 
 
-def Remove_mu(s):
+def remove_mu(s):
     '''
     Remove all mu in names
+
+    parameter:
+    -----------
+        s : string to be searched
     '''
     all_span = []
     mu = re.finditer('(\u03BC-)|(\u03BC\d-)', s)
     for val in mu:
         all_span.extend(list(range(val.span()[0], val.span()[1])))
     new_string = list(s)
-    for i, c in enumerate(new_string):
+    for i, _ in enumerate(new_string):
         if i in all_span:
             new_string[i] = ''
     new_string = ''.join(new_string)
@@ -146,16 +208,16 @@ def Remove_mu(s):
 
 def find_metals():
     '''
-    Runs through the list of metals name found in ../data/Files/metals.txt and write regex
-    parsers to identify the metal part of iupac name. 
+    Runs through the list of metals name found in ../data/Files/metals.txt
+    and write regex parsers to identify the metal part of iupac name.
     In coordination chemistry the IUPAC name follows the following standard
     [(Organinc ligand)(metal ions)] (guests, or ions if it is a coordination salt)
-    To extract organic ligands, it is important to identify the metal ions since the organic 
-    linkers come prior to the metal ions. 
+    To extract organic ligands, it is important to identify the metal ions since the organic
+    linkers come prior to the metal ions.
     '''
-    contents = File_typer.get_contents('../data/Files/metals.txt')
+    contents = get_metals()
     metal = []
-    mult = IUPAC_multiplicity()
+    mult = iupac_multiplicity()
     for metals in contents:
         metal.append('-'+metals.strip().lower()+'|')
         metal.append(metals.strip().lower()+'\s*|')
@@ -171,14 +233,15 @@ def find_metals():
     return metal[:-1]
 
 
-def Check_salt():
+def check_salt():
     '''
-    It is important to check whether the coordination compound is a salt or not. 
+    It is important to check whether the coordination compound is a salt or not.
     If it is a salt, we perform some simple checks in order to identify the correct metal ions
     '''
-    contents = File_typer.get_contents('../data/Files/metals.txt')
+    # contents = File_typer.get_contents('../data/Files/metals.txt')
+    contents = get_metals()
     metal = []
-    mult_1 = IUPAC_multiplicity()
+    mult_1 = iupac_multiplicity()
     mult = [i.capitalize() for i in mult_1]+mult_1
     for metals in contents:
         metal.append('^'+metals.strip()+'\s|')
@@ -202,93 +265,93 @@ def Check_salt():
     return metal[:-1]
 
 
-def Things_to_remove():
+def things_to_remove():
     '''
     There are lots of junks in the name which should be remove.
-    Here, we filter out all what is considered junks like 
+    Here, we filter out all what is considered junks like
     prefixes and suffixes
     '''
-    Remove = ['-aqua$|\(hydroxo\)-aqua$|-hexaoxo$|^tetrakis\(|^tris\(|bis\(|']
-    mul = IUPAC_multiplicity()
+    remove = ['-aqua$|\(hydroxo\)-aqua$|-hexaoxo$|^tetrakis\(|^tris\(|bis\(|']
+    mul = iupac_multiplicity()
     bis = [kis+'kis' for kis in mul[3:]]+['bis', 'tris']
     mult = bis+mul
     for prefix in mult:
-        Remove.append('^'+prefix+'\(|')
-        Remove.append('^'+prefix+'-\(|')
-        Remove.append('^'+prefix+'|')
-        Remove.append('-'+prefix+'$|')
-        Remove.append('-'+prefix+'aqua$|')
-        Remove.append('-aqua$|')
-        Remove.append('-aqua-'+prefix+'|')
+        remove.append('^'+prefix+'\(|')
+        remove.append('^'+prefix+'-\(|')
+        remove.append('^'+prefix+'|')
+        remove.append('-'+prefix+'$|')
+        remove.append('-'+prefix+'aqua$|')
+        remove.append('-aqua$|')
+        remove.append('-aqua-'+prefix+'|')
         for pre2 in mult:
-            Remove.append('-'+prefix+'aqua-'+pre2+'$|')
-            Remove.append('-'+prefix+'-aqua-'+pre2+'$|')
-            Remove.append('^'+prefix+pre2+'|')
-    Remove = ''.join(Remove)
-    return Remove[:-1]
+            remove.append('-'+prefix+'aqua-'+pre2+'$|')
+            remove.append('-'+prefix+'-aqua-'+pre2+'$|')
+            remove.append('^'+prefix+pre2+'|')
+    remove = ''.join(remove)
+    return remove[:-1]
 
 
-def Separate_bis():
+def separate_bis():
     '''
-    Seperate everything that has a prefix 
+    Seperate everything that has a prefix
     '''
-    Separate = []
-    mult = IUPAC_multiplicity()+['bis', 'tris']
+    separate = []
+    mult = iupac_multiplicity()+['bis', 'tris']
     for prefix in mult:
-        Separate.append('\)-'+prefix+'|')
+        separate.append('\)-'+prefix+'|')
         for kis in mult[3:-2]:
-            Separate.append("(\)-" + kis+'kis)|')
-    Separate = ''.join(Separate)
-    return Separate[:-1]
+            separate.append("(\)-" + kis+'kis)|')
+    separate = ''.join(separate)
+    return separate[:-1]
 
 
 def Bis():
     '''
-    Remove prefixes at the start of names 
+    Remove prefixes at the start of names
     '''
-    Separate = []
-    mult = IUPAC_multiplicity()
+    separate = []
+    mult = iupac_multiplicity()
     bis = [kis+'kis' for kis in mult[3:]]+['bis', 'tris']
     for prefix in bis+mult:
-        Separate.append('^'+prefix+'\(|')
-        Separate.append('^'+prefix+'\{|')
-        Separate.append('^'+prefix+'\|')
-        Separate.append('^'+prefix+'\(\(|')
+        separate.append('^'+prefix+'\(|')
+        separate.append('^'+prefix+'\{|')
+        separate.append('^'+prefix+'\|')
+        separate.append('^'+prefix+'\(\(|')
         for kis in bis:
-            Separate.append("^" + kis+'\('+prefix+'\(|')
-            Separate.append("^" + kis+'\('+prefix+'\[|')
-            Separate.append("^" + kis+'\('+prefix+'\{|')
-            Separate.append("^" + kis+'\{'+prefix+'\(|')
-            Separate.append("^" + kis+'\{'+prefix+'\[|')
-            Separate.append("^" + kis+'\{'+prefix+'\{|')
-            Separate.append("^" + kis+'\['+prefix+'\{|')
-            Separate.append("^" + kis+'\['+prefix+'\(|')
-            Separate.append("^" + kis+'\['+prefix+'\[|')
-    Separate = ''.join(Separate)
-    return Separate[:-1]
+            separate.append("^" + kis+'\('+prefix+'\(|')
+            separate.append("^" + kis+'\('+prefix+'\[|')
+            separate.append("^" + kis+'\('+prefix+'\{|')
+            separate.append("^" + kis+'\{'+prefix+'\(|')
+            separate.append("^" + kis+'\{'+prefix+'\[|')
+            separate.append("^" + kis+'\{'+prefix+'\{|')
+            separate.append("^" + kis+'\['+prefix+'\{|')
+            separate.append("^" + kis+'\['+prefix+'\(|')
+            separate.append("^" + kis+'\['+prefix+'\[|')
+    separate = ''.join(separate)
+    return separate[:-1]
 
 
-def Nasty_suffix():
+def nasty_suffix():
     '''
-    Some names have some nasty suffixes like 
+    Some names have some nasty suffixes like
     -N,N; -O, O''
-    We try to clean this out as much as possibe; 
+    We try to clean this out as much as possibe;
     '''
-    Suffix = ["-[npcos]('*?)[\d*'*\)*\s*]$|"]
+    suffix = ["-[npcos]('*?)[\d*'*\)*\s*]$|"]
     i = 0
     temp = ["-[npcos]('*?)\d*"]
     while i < 31:
         temp.append("[,][npcos]('*?)\d*\)*\s*")
         value = ''.join(temp+['$|'])
-        Suffix.append(value)
+        suffix.append(value)
         i += 1
-    Suffix = ''.join(Suffix)[:-1]
-    return Suffix
+    suffix = ''.join(suffix)[:-1]
+    return suffix
 
 
-def Correct_metal(name):
+def get_correct_metal(name):
     '''
-    There are some typos in the name of metals. 
+    There are some typos in the name of metals.
     This function coorects these typos
     '''
     if type(name) is str:
@@ -321,7 +384,7 @@ def Correct_metal(name):
     return name
 
 
-def Correct_linker_name(name, mu):
+def get_correct_linker_name(name, mu):
     '''
     Perform some changes in the name of the linkers
     '''
@@ -404,7 +467,7 @@ def Correct_linker_name(name, mu):
 def fix_name(metal_extract):
     '''
     The names of some metals have typos.
-    We deal with this by writing finding this typos and correcting them. 
+    We deal with this by writing finding this typos and correcting them.
     '''
     if 'bairium' in metal_extract:
         metal_extract.replace('bairium', 'barium')
@@ -451,12 +514,12 @@ def fix_name(metal_extract):
     return metal_extract
 
 
-def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult, Suffix):
+def final_curate(word_fragement, bis_seperate, bis_bracket, to_remove, all_mult, Suffix):
     '''
-    Perform the final cleaning of the MOFs. This is the slowest part of the script 
-    because it does a lot of loops. 
+    Perform the final cleaning of the MOFs. This is the slowest part of the script
+    because it does a lot of loops.
 
-    Need to figure out a means to reduce the number of loops. 
+    Need to figure out a means to reduce the number of loops.
     '''
     ligand_name = []
     second_curate = []
@@ -481,7 +544,7 @@ def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult,
             for index in suffix:
                 temp.extend(range(index.span()[0], index.span()[1]))
             list_value = list(words)
-            for j, c in enumerate(list_value):
+            for j, _ in enumerate(list_value):
                 if j in temp:
                     list_value[j] = ''
             ligand_name[i] = ''.join(list_value)
@@ -496,12 +559,12 @@ def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult,
         if (words.startswith('(') or words.startswith('{') or words.startswith('[')) and (words.endswith(')') or words.endswith('}') or words.endswith(']')):
             ligand_name[i] = words[1:-1]
     for i, value in enumerate(ligand_name):
-        new_string = Remove_mu(value)
+        new_string = remove_mu(value)
         ligand_name[i] = new_string
     for i, value in enumerate(ligand_name):
-        if len(re.findall(To_remove, value.lower())) > 0:
+        if len(re.findall(to_remove, value.lower())) > 0:
             tmp = []
-            unwanted = re.finditer(To_remove, value.lower())
+            unwanted = re.finditer(to_remove, value.lower())
             for index in unwanted:
                 try:
                     ne = value[index.span()[1]]+value[index.span()[1]+1]
@@ -564,13 +627,13 @@ def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult,
                 for val in ato:
                     ligand_name[i] = value[:val.span()[0]]+'ic acid'
     for i, words in enumerate(ligand_name):
-        new_word = Remove_unclosed_brackets(words)
+        new_word = remove_unclosed_brackets(words)
         ligand_name[i] = new_word
     for i, words in enumerate(ligand_name):
         if (words.startswith('(') or words.startswith('{') or words.startswith('[')) and (words.endswith(')') or words.endswith('}') or words.endswith(']')):
             ligand_name[i] = words[1:-1]
     for i, words in enumerate(ligand_name):
-        new_word, othername = Correct_linker_name(words.lower(), all_mult)
+        new_word, othername = get_correct_linker_name(words.lower(), all_mult)
         ligand_name[i] = new_word
         if len(othername) > 0:
             ligand_name.append(othername)
@@ -584,7 +647,7 @@ def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult,
         elif value.lower() == 'floro' or value.lower() == 'fluoro':
             ligand_name[i] = 'hydrogen floride'
     for words in ligand_name:
-        if not words.lower() in all_mult:
+        if words.lower() not in all_mult:
             second_curate.append(words)
     remove_mu = ''.join([m_u + '$|'+'-'+m_u + '$|' +
                         m_u + '-$|' for m_u in all_mult])[:-1]
@@ -593,28 +656,28 @@ def Final_curate(word_fragement, bis_seperate, bis_bracket, To_remove, all_mult,
             span = re.search(remove_mu, words).span()
             second_curate[index] = words[:span[0]]
     temp = []
-    Final_edit = []
+    final_edit = []
     for value in second_curate:
         if value.lower() not in temp and len(value) != 0:
             if value.startswith('-'):
                 value = value[1:]
-            Final_edit.append(value)
+            final_edit.append(value)
             temp.append(value.lower())
-    return Final_edit
+    return final_edit
 
 
-def Find_all_names(name, ref):
+def find_all_names(name, ref):
     '''
     To extract organic building units,we start by
-    1) Searching for the metal in the IUPAC names, 
-    since the metal is always suppose to be at the end in the name of coordination complexes. 
+    1) Searching for the metal in the IUPAC names,
+    since the metal is always suppose to be at the end in the name of coordination complexes.
     2)Once the metal is found, find all the individual organic linkers that are found before the metal
     Note:
-    There are a few names, where the organic linker comes at the start. This is accounted for manually. 
+    There are a few names, where the organic linker comes at the start. This is accounted for manually.
     '''
     Metal = {}
     Failed = []
-    name = Correct_metal(name)
+    name = get_correct_metal(name)
     # Check if system is a salt
     if re.search(salt, name):
         salt_span = re.search(salt, name).span()
@@ -656,6 +719,6 @@ def Find_all_names(name, ref):
                 word_fragement.append(word)
     else:
         word_fragement.append(Non_metal)
-    list_of_reagents = Final_curate(
-        word_fragement, bis_seperate, bis_bracket, To_remove, all_mult, Suffix)
+    list_of_reagents = final_curate(
+        word_fragement, bis_seperate, bis_bracket, to_remove, all_mult, Suffix)
     return list_of_reagents, Metal, Failed

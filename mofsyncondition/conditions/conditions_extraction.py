@@ -5,6 +5,7 @@ __status__ = "production"
 import re
 from types import SimpleNamespace
 
+
 def get_times_toks(sentence_toks):
     """
     Extract time/duration expressions from tokenized sentence.
@@ -49,7 +50,6 @@ def get_times_toks(sentence_toks):
     def parse_number(tok):
         return bool(re.fullmatch(r"[0-9]+(\.[0-9]+)?", tok))
 
-    # ---- NEW: detect NMR/assignment context around token i ----
     def in_nmr_context(i: int, window: int = 10) -> bool:
         """
         Returns True if surrounding tokens suggest NMR/chemical-shift assignment text,
@@ -59,25 +59,20 @@ def get_times_toks(sentence_toks):
         hi = min(len(sentence_toks), i + window + 1)
         ctx = " ".join(sentence_toks[lo:hi]).lower()
 
-        # strong NMR indicators
         if "nmr" in ctx or "δ" in ctx or "ppm" in ctx:
             return True
 
-        # coupling constants / units typical in NMR
         if re.search(r"\bj\s*=\s*\d", ctx) or "hz" in ctx:
             return True
 
-        # common NMR solvents
         if any(s in ctx for s in ["cdcl3", "cd3od", "dmso", "d6", "acetone-d6", "d2o"]):
             return True
 
-        # multiplicities / assignment language often near "xH"
         if re.search(r"\b(br|s|d|t|q|m|dd|dt|td|tt)\b", ctx):
             return True
 
         return False
 
-    # Parse compact token like "2h", "2hrs", "2.5h", "2-3h", "30min"
     def parse_compact(token_raw: str, i: int):
         """
         Returns (num_str, unit_str) or (None, None)
@@ -91,8 +86,6 @@ def get_times_toks(sentence_toks):
         num = m.group(1)
         unit_raw = m.group(2)
 
-        # ---- NEW: if it's like 12H / 4H / 1H and we're in NMR context, reject ----
-        # (Case-sensitive check on the original unit chunk)
         if unit_raw == "H" and in_nmr_context(i):
             return None, None
 
@@ -111,13 +104,11 @@ def get_times_toks(sentence_toks):
         nxt2_raw = sentence_toks[i+2] if i+2 < N else ""
         nxt2 = norm(nxt2_raw)
 
-        # --- overnight ---
         if tok in {"overnight", "o/n"}:
             times.append({"value": tok, "units": "N/A", "text": tok_raw})
             i += 1
             continue
 
-        # --- half an hour / quarter hour ---
         if tok in {"half", "quarter"}:
             if nxt in {"a", "an"} and nxt2 in UNIT_MAP:
                 times.append({"value": tok, "units": UNIT_MAP[nxt2], "text": f"{tok_raw} {nxt_raw} {nxt2_raw}"})
@@ -128,23 +119,18 @@ def get_times_toks(sentence_toks):
                 i += 2
                 continue
 
-        # --- a / an hour ---
         if tok in {"a", "an"} and nxt in UNIT_MAP:
             times.append({"value": tok, "units": UNIT_MAP[nxt], "text": f"{tok_raw} {nxt_raw}"})
             i += 2
             continue
 
-        # --- compact numeric: 2h, 2-3days, BUT avoid NMR 12H ---
         val, unit = parse_compact(tok_raw, i)
         if val and unit in UNIT_MAP:
             times.append({"value": val, "units": UNIT_MAP[unit], "text": tok_raw})
             i += 1
             continue
 
-        # --- numeric split: 2 days ---
-        # ---- NEW: avoid NMR split like "12 H" if in NMR context ----
         if parse_number(tok) and nxt in UNIT_MAP:
-            # If the next token is exactly "H" (hours) but we're in NMR context, skip.
             if nxt_raw == "H" and in_nmr_context(i):
                 i += 1
                 continue
@@ -203,14 +189,9 @@ def get_times_toks(sentence_toks):
 
 def get_temperatures_toks(sentence_toks):
     """
-    Extract temperature-like mentions from a tokenized sentence.
+    Docstring for get_temperatures_toks
 
-    Fixes included:
-      Do NOT parse isotope/NMR labels like "13C", "1H", "31P", "19F" as °C.
-         (e.g., "13C NMR" should NOT become 13 °C)
-      Keep real temperatures like "-22 °C", "235°C", "298 K", "80 - 100 °C"
-      Keep textual temperatures like "room temperature", "ambient temperature", "ice bath"
-      Do NOT mis-detect "at" as ambient temperature (AT)
+    :param sentence_toks: Description
     """
 
     out = []
@@ -247,10 +228,6 @@ def get_temperatures_toks(sentence_toks):
             return "°F"
         return u
 
-    # -----------------------------
-    # ✅ NEW: isotope/NMR guard
-    # -----------------------------
-    # Tokens like 13C, 1H, 31P, 19F, 15N (optionally with punctuation/braces)
     ISOTOPE_TOKEN = re.compile(r"^\s*\d{1,3}\s*(C|H|P|F|N)\s*[\]}),;:.]*\s*$", re.I)
     NMR_TOKEN = re.compile(r"^(nmr|n\.m\.r\.?)$", re.I)
 
@@ -269,12 +246,11 @@ def get_temperatures_toks(sentence_toks):
         if not ISOTOPE_TOKEN.match(tok):
             return False
 
-        # Look for NMR within a small window around the isotope token
+
         for j in range(max(0, i - 3), min(len(sentence_toks), i + 5)):
             if NMR_TOKEN.match(norm(sentence_toks[j])):
                 return True
 
-        # Also catch "13C NMR" where "NMR" is immediately after
         if i + 1 < len(sentence_toks) and NMR_TOKEN.match(norm(sentence_toks[i + 1])):
             return True
 
@@ -286,7 +262,6 @@ def get_temperatures_toks(sentence_toks):
         if is_rate_context(i):
             return None, None, 0, None
 
-        # ✅ Prevent "13C" (and friends) from being parsed as 13 °C in NMR context
         if is_isotope_nmr_context(i):
             return None, None, 0, None
 
@@ -301,16 +276,14 @@ def get_temperatures_toks(sentence_toks):
         t2n = norm(t2_raw)
 
         t3_raw = sentence_toks[i + 3] if i + 3 < len(sentence_toks) else ""
-        t3n = norm(t3_raw)
+        # t3n = norm(t3_raw)
 
-        # strip leading approximation symbols from token
         t0_clean = re.sub(
             r"^[~∼≈≃≅≒≓≍≌≉≊≋≔≕≖≗≘≙≚≛≜≝≞≟≠≡≢≣≦≧≨≩≪≫≤≥<>]+",
             "",
             t0
         ).strip()
 
-        # A) number + unit in same token: "235°C", "-20°c", "298K", "80-100°C", "235C"
         m = re.match(
             r"^([+-]?\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?)\s*(°?\s*[CKF]|°c|°C|K|C|F|°F)?$",
             t0_clean
@@ -393,7 +366,7 @@ def get_temperatures_toks(sentence_toks):
         (("freezer",),     ("freezer", "N/A", "temperature")),
     ]
 
-    # ✅ FIXED: RT is fine, but AT must NOT match "at"
+
     RT_REGEX = re.compile(r"^(rt|r\.t\.?)$", re.I)
 
     # ambient single-token variants only (NO "at")
@@ -433,9 +406,6 @@ def get_temperatures_toks(sentence_toks):
 
     while i < N:
         t0 = norm(sentence_toks[i])
-
-        # ✅ Additional safety: if current token is isotope label, skip it (prevents odd tokenizations)
-        # Still only skip if near NMR, so we don't miss real temps like "13 C" in non-NMR contexts.
         if is_isotope_nmr_context(i):
             i += 1
             continue
@@ -513,7 +483,6 @@ def get_temperatures_toks(sentence_toks):
             i += 1
             continue
 
-        # ✅ FIXED: "at" will no longer match AT
         if AT_REGEX.match(t0):
             add("AT", "N/A", sentence_toks[i], "temperature")
             i += 1
@@ -570,6 +539,12 @@ def get_temperatures_toks(sentence_toks):
 
 
 def get_environment(sentence, materials_):
+    """
+    Docstring for get_environment
+
+    :param sentence: Description
+    :param materials_: Description
+    """
 
     with_ids = [t.i for t in sentence if t.text in ["with", "into"]]
     in_ids = [t.i for t in sentence if t.text in ["in", "under"]]
@@ -862,6 +837,8 @@ def get_atmosphere_toks(sentence):
     """
     Extract operating conditions from a sentence and return STRUCTURED buckets:
 
+    param sentence: List of tokens (with .text and .i attributes)
+
     Returns:
       {
         "atmosphere": [ {value, text, mode, composition?, pressure?, pressure_units?} ... ],
@@ -869,11 +846,6 @@ def get_atmosphere_toks(sentence):
         "vessel":     [ {value, text, qualifiers?} ... ],
         "humidity":   [ {value, units, text} ... ],
       }
-
-    Key fixes:
-      - Do NOT treat element symbols like "Co" (cobalt) as carbon monoxide "CO".
-      - Only recognize CO gas as "CO" (all caps) or "carbon monoxide".
-      - Only extract gases when there is atmosphere context (under/in/with ... atmosphere, purged, flowing, etc.)
     """
 
 
@@ -1034,7 +1006,6 @@ def get_atmosphere_toks(sentence):
             return i + 4, {"value": n, "units": u, "text": span_text(i, i + 4), "kind": "pressure"}
         return None
 
-    # ✅ CO handling: ONLY accept "CO" (all caps) OR phrase "carbon monoxide"
     def canon_gas_at(i: int):
         """
         Return (gas_value, consumed_tokens) or (None, 0)

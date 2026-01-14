@@ -1234,7 +1234,6 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
         chosen = choose_fine(hits)
         coarse = to_coarse(chosen)
 
-        # ✅ Apply temperature overrides
         override = temperature_override(sent, hits, kind)
         if override is not None:
             coarse = override
@@ -1689,9 +1688,13 @@ def extract_esi(paragraphs):
         r"\b10\.\d{4,}(?:\.\d+)*\/\S+\b", plain_text, re.IGNORECASE)
     return doi_esi
 
-
-
 def all_elements():
+    """
+    Docstring for all_elements
+
+    :return: Description
+    :rtype: Any
+    """
     radius = {
         'H': 0.31,
         'He': 0.28,
@@ -2157,7 +2160,7 @@ def metal_pattern(metals):
                 pattern_list.append(symbol)
                 pattern_list.append(metals_dic[symbol])
 
-        except:
+        except Exception:
             pass
 
 
@@ -2564,6 +2567,7 @@ def is_chemical_formula(salt):
     else:
         return False
 
+
 def correct_spacing(chemical_name):
     """
     Corrects spacing around parentheses in chemical names.
@@ -2582,9 +2586,9 @@ def get_chemical_formula(chemical_name):
             ion = Ion(composition)
             return ion.get_reduced_formula_and_factor(hydrates=True)[0]
         else:
-            return chemical_name  # Return name if formula not found
+            return chemical_name
     except Exception:
-         return chemical_name  # Handle errors gracefully
+         return chemical_name
 
 
 
@@ -2655,4 +2659,3 @@ def filter_common_names(synonyms):
         return is_valid_formula(syn) if syn.isalnum() else False
 
     return [syn for syn in synonyms if is_common_name(syn)]
-

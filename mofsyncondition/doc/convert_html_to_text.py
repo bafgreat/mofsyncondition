@@ -3,12 +3,10 @@ from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import inscriptis
-import PyPDF2
 import fitz
 import re
-import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
-# from pdfdataextractor import Reader
+from mofsyncondition.doc import doc_parser
 
 
 def find_xml_namespace(markup_file, name_pattern):
@@ -52,7 +50,7 @@ def html_2_text(html_file):
     return inscriptis.get_text(html_object)
 
 
-def html_2_text2(markup_file):
+def file_2_list_of_paragraphs(markup_file):
     """
     A function that uses inscriptis to convert
     html files to plain text.
@@ -86,12 +84,16 @@ def html_2_text2(markup_file):
     text = []
     ext = markup_file[markup_file.rindex('.')+1:]
     if ext == 'html':
-        with open(markup_file, 'r', encoding="utf-8") as file_object:
-            file_object = file_object.read()
-        soup = BeautifulSoup(file_object, 'html.parser')
-        extract = soup(['title', 'h2', 'h1', 'h3', 'h4', 'p'])
-        for element in extract:
-            text.append(inscriptis.get_text(str(element)).strip())
+        plain_text = html_2_text(markup_file)
+        text = doc_parser.text_2_paragraphs(plain_text)
+
+        # with open(markup_file, 'r', encoding="utf-8") as file_object:
+        #     file_object = file_object.read()
+        # soup = BeautifulSoup(file_object, 'html.parser')
+        # extract = soup(['title', 'h2', 'h1', 'h3', 'h4', 'p'])
+        # for element in extract:
+        #     text.append(inscriptis.get_text(str(element)).strip())
+
     elif ext == 'xml':
         with open(markup_file, 'r', encoding="utf-8") as file_object:
             file_object = file_object.read()
@@ -100,70 +102,109 @@ def html_2_text2(markup_file):
         for element in extract:
             text.append(inscriptis.get_text(str(element)))
     elif ext == 'pdf':
-        text = pdfataextractor(markup_file)
+        text = text = extract_pdf_paragraphs(markup_file)
     return text
 
 
-def convert_pdf_to_text(pdf_path):
+def _clean_line(s: str) -> str:
+    s = s.replace("\u00ad", "")  # soft hyphen
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+
+def _dehyphenate(prev: str, nxt: str) -> str:
     """
-    A function that uses PyPDF2 to convert
-    pdf files to plain text.
+    If previous line ends with hyphen and next starts with a letter,
+    join them: "examp-" + "le" -> "example"
+    """
+    if prev.endswith("-") and nxt and nxt[0].isalpha():
+        return prev[:-1] + nxt
+    return prev + " " + nxt
+
+
+def extract_pdf_paragraphs(
+    pdf_path: str,
+    *,
+    min_chars: int = 30,
+    header_footer_margin_ratio: float = 0.08,
+    para_gap_multiplier: float = 1.25
+    ) -> list[str]:
+    """
+    Extract paragraphs from a PDF using layout blocks + heuristics.
+
     Parameters
     ----------
-    pdf_path: pdf file name or path: str.type
+    min_chars:
+        drop very short blocks (often page numbers, running headers)
+    header_footer_margin_ratio:
+        treat top/bottom X% of page as header/footer region and ignore text there
+    para_gap_multiplier:
+        bigger -> fewer paragraph breaks; smaller -> more breaks
 
     Returns
     -------
+    paragraphs : list[str]
     """
-    text_content = ""
-
-    try:
-        with open(pdf_path, 'rb') as pdf_file:
-            # Create a PDF reader object
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-            # Iterate through each page and extract text
-            for page_num in range(len(pdf_reader.pages)):
-                page = pdf_reader.pages[page_num]
-                print(page.extract_text())
-                text_content += page.extract_text()
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-
-    return text_content
-
-
-def convert_pdf_to_plaintext(pdf_path):
-    """
-    A function that uses PyPDF2 to convert
-    pdf files to plain text.
-    Parameters
-    ----------
-    pdf_path: pdf file name or path: str.type
-
-    Returns
-    -------
-    """
-    text_content = ""
     doc = fitz.open(pdf_path)
-    paragraph_spacing = "\n\n"
-    for page_num in range(doc.page_count):
-        page = doc[page_num]
-        text = page.get_text("text")
-        # Split paragraphs and add spacing
-        paragraphs = text.split("\n")
-        formatted_text = paragraph_spacing.join(paragraphs)
-        text_content += text
-    return text_content
+    all_paras: list[str] = []
 
+    for page in doc:
+        page_h = page.rect.height
+        header_y = page_h * header_footer_margin_ratio
+        footer_y = page_h * (1 - header_footer_margin_ratio)
 
-def pdfataextractor(pdf_path):
-    all_text = []
-    file = Reader()
-    pdf = file.read_file(pdf_path)
-    plain_text = pdf.plaintext()
-    for text in plain_text.split('\n'):
-        all_text.append(inscriptis.get_text(text))
-    return all_text
+        blocks = page.get_text("blocks")
+        text_blocks = []
+        for (x0, y0, x1, y1, text, *_rest) in blocks:
+            if y1 < header_y or y0 > footer_y:
+                continue
+            text = text.strip()
+            if len(text) < min_chars:
+                continue
+            text_blocks.append((x0, y0, x1, y1, text))
+        text_blocks.sort(key=lambda b: (round(b[1], 1), round(b[0], 1)))
 
+        for (x0, y0, x1, y1, block_text) in text_blocks:
+            raw_lines = [ln.strip() for ln in block_text.splitlines()]
+            lines = [_clean_line(ln) for ln in raw_lines if _clean_line(ln)]
+
+            if not lines:
+                continue
+
+            # est_line_h = max((y1 - y0) / max(len(lines), 1), 1.0)
+            # para_gap = est_line_h * para_gap_multiplier
+
+            paras_in_block = []
+            buf = ""
+
+            for ln in lines:
+                if not ln:
+                    if buf:
+                        paras_in_block.append(buf.strip())
+                        buf = ""
+                    continue
+
+                if not buf:
+                    buf = ln
+                else:
+                    if buf.endswith("-"):
+                        buf = _dehyphenate(buf, ln)
+                    else:
+                        buf = buf + " " + ln
+
+            if buf:
+                paras_in_block.append(buf.strip())
+
+            paras_in_block = [re.sub(r"\s+", " ", p).strip() for p in paras_in_block]
+            all_paras.extend([p for p in paras_in_block if p])
+
+    cleaned = []
+    seen = set()
+    for p in all_paras:
+        key = p.strip()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(key)
+
+    return cleaned

@@ -35,8 +35,8 @@ def custom_tokenizer(nlp):
 def get_entities(doc):
     """
     code to find relation in sentences
-    borrowed from 
-    https://www.kaggle.com/code/pavansanagapati/knowledge-graph-nlp-tutorial-bert-spacy-nltk 
+    borrowed from
+    https://www.kaggle.com/code/pavansanagapati/knowledge-graph-nlp-tutorial-bert-spacy-nltk
     """
     # chunk 1
     nlp = spacy.load('en_core_web_sm')
@@ -113,10 +113,10 @@ def get_relation(doc):
 
 def spacy_tokenizer(plain_text):
     '''
-    Remove stop words from a list of tokens. 
+    Remove stop words from a list of tokens.
     Parameters
     ----------
-    token list   
+    token list
 
     Returns
     -------
@@ -175,7 +175,7 @@ def create_paragraph_training_data(encoded_paragraph, path_to_save, format='xlsx
     sentiment analysis
     Parameters
     ----------
-    encoded_paragraph: json file containing encoded paragraphs 
+    encoded_paragraph: json file containing encoded paragraphs
     path_2_csv: folder to save dataframe
 
     """
@@ -188,7 +188,7 @@ def create_paragraph_training_data(encoded_paragraph, path_to_save, format='xlsx
         all_par_keys = list(par_encoder.keys())
         full_path = os.path.join(path_to_data, refcode+'.html')
         paragraphs = doc_parser.text_2_paragraphs(
-            convert_html_to_text.html_2_text2(full_path))
+            convert_html_to_text.file_2_list_of_paragraphs(full_path))
         for index, paragraph in enumerate(paragraphs):
             if str(index) in all_par_keys:
                 par_value = par_encoder[str(index)]
@@ -224,7 +224,7 @@ def creat_spacy_data_for_textcat(raw_data):
 
     return
     ----------
-    spacy_data: The data arrange in format that spacy recognises for 
+    spacy_data: The data arrange in format that spacy recognises for
                 text classification
     '''
     spacy_data = []

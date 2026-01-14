@@ -5,7 +5,6 @@ __status__ = "production"
 import re
 # import chemdataextractor as cde
 import spacy
-from mofsyncondition.doc import convert_html_to_text
 from mofsyncondition.conditions.organic_reagents_from_iupac_name import find_parentheses, find_square_brackets
 
 
@@ -28,7 +27,7 @@ def unclosed_brackets(text):
     all_brackets = new_list_1 + new_list_2 + new_list_3
     brackets = [i for i in range(len(text)) if text[i] == '(' or text[i] == ')' or text[i]
                 == '{' or text[i] == '}' or text[i] == '[' or text[i] == '}']
-    unbalanced_bracket = [i for i in brackets if not i in all_brackets]
+    unbalanced_bracket = [i for i in brackets if i not in all_brackets]
 
     return unbalanced_bracket
 
@@ -97,10 +96,8 @@ def text_2_paragraphs(plain_text):
     paragraph_match_patern = re.finditer(pattern, plain_text, flags=re.DOTALL)
     counter = 0
     for match in paragraph_match_patern:
-        print(counter )
         text_span = match.span()
         paragraph = plain_text[text_span[0]:text_span[1]]
-        print(paragraph)
         paragraphs.append(paragraph)
         counter += 1
     return paragraphs

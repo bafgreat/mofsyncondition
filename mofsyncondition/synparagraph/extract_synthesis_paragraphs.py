@@ -20,10 +20,8 @@ def all_synthesis_paragraphs(plain_text, model='NN_tfv'):
     '''
 
     vectorizer_loader, ml_model = load_model(model)
-    paragraphs = doc_parser.text_2_paragraphs(plain_text)
 
-    # vectorizer_loader = load_data(f'../models/vectorizers/{model}.pkl')
-    # ml_model = load_data(f'../models/ml_models/{model}_model.pkl')
+    paragraphs = plain_text
 
     vectorizer = vectorizer_loader[f'{model}']
     text_vectors = vectorizer.transform(paragraphs)
