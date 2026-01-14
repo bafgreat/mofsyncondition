@@ -5,10 +5,6 @@ __status__ = "production"
 import re
 from types import SimpleNamespace
 
-import re
-
-import re
-
 def get_times_toks(sentence_toks):
     """
     Extract time/duration expressions from tokenized sentence.
@@ -210,13 +206,12 @@ def get_temperatures_toks(sentence_toks):
     Extract temperature-like mentions from a tokenized sentence.
 
     Fixes included:
-      ✅ Do NOT parse isotope/NMR labels like "13C", "1H", "31P", "19F" as °C.
+      Do NOT parse isotope/NMR labels like "13C", "1H", "31P", "19F" as °C.
          (e.g., "13C NMR" should NOT become 13 °C)
-      ✅ Keep real temperatures like "-22 °C", "235°C", "298 K", "80 - 100 °C"
-      ✅ Keep textual temperatures like "room temperature", "ambient temperature", "ice bath"
-      ✅ Do NOT mis-detect "at" as ambient temperature (AT)
+      Keep real temperatures like "-22 °C", "235°C", "298 K", "80 - 100 °C"
+      Keep textual temperatures like "room temperature", "ambient temperature", "ice bath"
+      Do NOT mis-detect "at" as ambient temperature (AT)
     """
-    import re
 
     out = []
 
@@ -880,8 +875,7 @@ def get_atmosphere_toks(sentence):
       - Only recognize CO gas as "CO" (all caps) or "carbon monoxide".
       - Only extract gases when there is atmosphere context (under/in/with ... atmosphere, purged, flowing, etc.)
     """
-    import re
-    from types import SimpleNamespace
+
 
     # ---------- helpers ----------
     def _wrap_tokens(x):
@@ -1359,9 +1353,21 @@ def get_atmosphere_toks(sentence):
         return out
 
     out_struct["atmosphere"] = dedup_list(out_struct["atmosphere"],
-                                         ["value", "text", "mode", "composition", "pressure", "pressure_units"])
-    out_struct["pressure"] = dedup_list(out_struct["pressure"], ["value", "units", "text", "kind"])
-    out_struct["vessel"] = dedup_list(out_struct["vessel"], ["value", "text"])
-    out_struct["humidity"] = dedup_list(out_struct["humidity"], ["value", "units", "text"])
+                                          ["value",
+                                           "text",
+                                           "mode",
+                                           "composition",
+                                           "pressure",
+                                           "pressure_unit"]
+                                          )
+    out_struct["pressure"] = dedup_list(out_struct["pressure"],
+                                        ["value", "unit", "text", "kind"])
+    out_struct["vessel"] = dedup_list(out_struct["vessel"],
+                                      ["value",
+                                       "text"]
+                                      )
+    out_struct["humidity"] = dedup_list(out_struct["humidity"],
+                                        ["value",
+                                         "unit", "text"])
 
     return out_struct

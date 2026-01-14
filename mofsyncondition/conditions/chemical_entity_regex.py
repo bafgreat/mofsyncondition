@@ -144,6 +144,114 @@ from mofsyncondition.doc import doc_parser
 #     return solvent_name_options
 
 
+import re
+
+def clean_chemicals(chemicals):
+    """
+    Remove spectroscopic artifacts + single-element tokens + obvious junk like "1S"/"2S"
+    + colors/appearance phrases, but DO NOT remove solvents/atmospheres/reagents.
+
+    Example:
+      ["O 1617", "Cu2O", "CH", "CH2", "nitrogen", "ethanol", "1H", "16H", "Co", "Fe", "2S", "light green"]
+        -> ["Cu2O", "nitrogen", "ethanol"]
+    """
+
+    # wavenumber units
+    RE_WAVENUMBER = re.compile(r"(?i)\bcm\s*[−-]?\s*1\b|\bcm\s*\^\s*[−-]?\s*1\b")
+
+    # NMR tokens like 1H, 13C{1H}, 31P, 19F; also plain hydrogen counts like 16H
+    RE_NMR_ISOTOPE = re.compile(
+        r"(?ix)^\s*\d{1,3}\s*(?:H|C|N|O|P|F|Si|B|S)\s*(?:\{\s*\d{1,3}\s*H\s*\})?\s*$"
+    )
+    RE_H_COUNT = re.compile(r"(?i)^\s*\d+\s*H\s*$")
+
+    # IR/Raman-like short tokens: "O 1617", "νC=O 1617", "C=O 1617"
+    RE_SPECTRO_LINE = re.compile(
+        r"(?ix)^\s*(?:ν|nu)?\s*[A-Za-z]{1,4}\s*[-=≡]?\s*[A-Za-z]{0,4}\s*\d{3,4}\s*$"
+    )
+
+    # Spectral assignment fragments (not actual reagents): CH, CH2, CH3, OH, NH2, etc.
+    RE_FRAGMENT = re.compile(
+        r"(?ix)^\s*(?:CH|CH2|CH3|OH|OH2|NH|NH2|NH3|CO|CS|CN|NO2|C2O4)\s*$"
+    )
+
+    # Single element symbols ONLY (Co, Fe, O, Cu, Zn, ...)
+    RE_ELEMENT = re.compile(r"^\s*[A-Z][a-z]?\s*$")
+
+    # junk tokens
+    RE_JUNK = re.compile(r"^\s*[\W_]+?\s*$")
+
+    # ✅ remove things like "1S", "2S", "2 s" when they are standalone junk tokens
+    # (keeps real chemicals like "H2S" because that has digits+letters but not just S)
+    RE_STANDALONE_S_TOKEN = re.compile(r"(?i)^\s*\d+\s*s\s*$")  # "2S", "2 s", "15 s"
+
+    # ✅ remove appearance/color phrases (these are NOT chemicals)
+    # catches: "light green", "dark red", "blue powder", "white precipitate", "clear green filtrate", etc.
+    COLOR_WORDS = (
+        "white|black|grey|gray|red|orange|yellow|green|blue|violet|purple|pink|brown|teal|cyan|magenta|colorless"
+    )
+    MODIFIERS = (
+        "light|dark|pale|deep|bright|faint|intense|clear|opaque|milky|turbid|transparent|cloudy"
+    )
+    NOUNS = (
+        "solution|mixture|suspension|precipitate|solid|powder|crystals?|filtrate|supernatant|liquid|oil|gel|slurry"
+    )
+
+    RE_COLOR_PHRASE = re.compile(
+        rf"(?ix)^\s*(?:({MODIFIERS})\s+)?({COLOR_WORDS})(?:\s*[-–]\s*({COLOR_WORDS}))?\s*(?:({NOUNS}))?\s*$"
+    )
+
+    cleaned = []
+    seen = set()
+
+    for c in (chemicals or []):
+        if c is None:
+            continue
+        s = str(c).strip()
+        if not s:
+            continue
+
+        # Remove obvious junk
+        if RE_JUNK.match(s):
+            continue
+
+        # Remove color/appearance tokens
+        if RE_COLOR_PHRASE.match(s):
+            continue
+
+        # Remove wavenumber units (cm-1 etc.)
+        if RE_WAVENUMBER.search(s):
+            continue
+
+        # Remove NMR artifacts
+        if RE_NMR_ISOTOPE.match(s) or RE_H_COUNT.match(s):
+            continue
+
+        # Remove short IR/Raman assignment-like tokens
+        if RE_SPECTRO_LINE.match(s):
+            continue
+
+        # Remove CH/CH2/etc fragments
+        if RE_FRAGMENT.match(s):
+            continue
+
+        # Remove standalone "2S"/"15 s" junk tokens
+        if RE_STANDALONE_S_TOKEN.match(s):
+            continue
+
+        # Remove single element tokens (Co, Fe, O, ...)
+        # (but keep if the string has any digit, e.g. "O2" as a real gas label)
+        if RE_ELEMENT.match(s) and not any(ch.isdigit() for ch in s):
+            continue
+
+        key = s.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        cleaned.append(s)
+
+    return cleaned
+
 def mof_regex():
     '''
     A regex pattern to identify MOFs, similar to digiMOFs
@@ -512,14 +620,24 @@ def solvent_abbreviation(word):
 
 def reaction_time_breakdown2(time_hits, spacy_doc):
     """
-    Collapse many fine-grained context hits into 4 coarse buckets:
-      - reaction
-      - crystallisation
-      - drying
-      - stability
+    Build BOTH:
+      1) coarse buckets: reaction / crystallisation / drying / stability
+      2) explicit steps: grouped by fine-step label, ordered by appearance in the text
+
+    Returns:
+      {
+        "buckets": {coarse_key: [items...]},
+        "steps":   [ { "step": <fine_step>, "events": [..ordered..] }, ... ],
+        "steps_map": { fine_step: [events...] }   # optional convenience
+      }
+
+    Each bucket item includes context + coarse_bucket + fine_step.
     """
 
     patterns = key_words_regex()
+    FINE_SYNONYMS = {
+    "crystallisation": "crystallization"
+    }
 
     fine_priority = [
         "crystallization",
@@ -534,9 +652,9 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
         "stirring_mixing",
         "aging_standing",
         "stability_storage",
-        "characterization",
         "reaction",
     ]
+
 
     COARSE_KEYS = ("reaction", "crystallisation", "drying", "stability")
 
@@ -557,30 +675,43 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
         "stirring_mixing": "reaction",
         "sonication": "reaction",
         "irradiation": "reaction",
-        "characterization": "reaction",
     }
 
     buckets = {k: [] for k in COARSE_KEYS}
+    steps_map = {}
     seen = set()
+
+    def normalize_fine_hits(hits):
+        return [FINE_SYNONYMS.get(h, h) for h in hits]
 
     def norm(s: str) -> str:
         return (s or "").strip().lower()
 
-    def sentence_containing_phrase(doc, phrase: str):
+    def sentence_span_containing_phrase(doc, phrase: str):
+        """
+        Return the spaCy sentence Span containing `phrase` (case-insensitive substring),
+        or None if not found.
+        """
         p = norm(phrase)
         if not p:
             return None
         for sent in doc.sents:
             if p in sent.text.lower():
-                return sent.text
+                return sent
         return None
 
-    def all_fine_hits(sentence: str):
-        if not sentence:
+    def all_fine_hits(sentence_text: str):
+        """Return list of fine label names whose regex pattern matches the sentence."""
+        if not sentence_text:
             return []
-        return [name for name, pat in patterns.items() if pat.search(sentence)]
+        return [name for name, pat in patterns.items() if pat.search(sentence_text)]
 
     def choose_fine(hits):
+        """Choose the best fine label according to priority order."""
+        if not hits:
+            return "reaction"
+
+        hits = [h for h in hits if h != "characterization"]
         if not hits:
             return "reaction"
         for p in fine_priority:
@@ -590,11 +721,6 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
 
     def to_coarse(fine_label: str) -> str:
         return FINE_TO_COARSE.get(fine_label, "reaction")
-
-    # ----------------------------
-    # time-specific overrides
-    # ----------------------------
-    import re
 
     COLD_ENV_CUES = re.compile(
         r"(?i)\b(freezer|refrigerator|fridge|cold\s*room|ice\s*bath|on\s*ice|in\s*ice|cryostat)\b"
@@ -606,14 +732,15 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
         r"crystal(?:s|line)?|crystalline|single\s+crystals|colorless\s+crystals|block\s+crystals"
         r")\b"
     )
-
     DRYING_CUES = re.compile(
         r"(?i)\b(dry|drying|dried|degass|degassed|desolvate|desolvated|activation|activated)\b"
     )
 
-    # ✅ NEW: reaction-time vs workup-time disambiguation
+    # reaction-time vs workup-time disambiguation
     STIRRING_CUES = re.compile(r"(?i)\b(stir(?:red|ring)?|stirring|continued)\b")
-    WORKUP_CUES_FALLBACK = re.compile(r"(?i)\b(after which|filtered|buchner|büchner|funnel|vacuum filtration|washed|decanted)\b")
+    WORKUP_CUES_FALLBACK = re.compile(
+        r"(?i)\b(after which|filtered|buchner|büchner|funnel|vacuum filtration|washed|decanted)\b"
+    )
 
     def _first_match_start(pat, s: str):
         if not pat or not s:
@@ -628,52 +755,55 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
         m = pat.search(s)
         return m.start() if m else None
 
-    def _find_time_pos(sentence: str, text: str, value: str, units: str):
-        s = sentence.lower()
-        # try exact extracted text first
-        cand = (text or "").strip().lower()
-        if cand:
-            # soften punctuation differences
-            cand2 = cand.strip(" .;:,)")
-            pos = s.find(cand2)
-            if pos != -1:
-                return pos
-        # fallback: "value unit"
-        vu = f"{(value or '').strip()} {(units or '').strip()}".strip().lower()
-        if vu:
-            pos = s.find(vu)
-            if pos != -1:
-                return pos
-        # fallback: value only
-        vv = (value or "").strip().lower()
-        if vv:
-            pos = s.find(vv)
-            if pos != -1:
-                return pos
-        return None
-
-    def time_override(sentence: str, fine_hits: list[str], text: str, value: str, units: str) -> str | None:
+    def _find_time_pos(sentence_lower: str, text: str, value: str, units: str):
         """
-        Return coarse override label or None.
+        Try to locate the time expression position inside sentence_lower to compare with cue positions.
         """
-
-        s = sentence or ""
-        if not s:
+        if not sentence_lower:
             return None
 
-        # cold crystallisation hold
+        cand = (text or "").strip().lower()
+        if cand:
+            cand2 = cand.strip(" .;:,)")
+            pos = sentence_lower.find(cand2)
+            if pos != -1:
+                return pos
+
+        vu = f"{(value or '').strip()} {(units or '').strip()}".strip().lower()
+        if vu:
+            pos = sentence_lower.find(vu)
+            if pos != -1:
+                return pos
+
+        vv = (value or "").strip().lower()
+        if vv:
+            pos = sentence_lower.find(vv)
+            if pos != -1:
+                return pos
+
+        return None
+
+    def time_override(sentence_text: str, fine_hits: list, text: str, value: str, units: str):
+        """
+        Return a COARSE override label (reaction/crystallisation/drying/stability) or None.
+        """
+        if not sentence_text:
+            return None
+
+        s = sentence_text
+        s_lower = s.lower()
+
         if (COLD_ENV_CUES.search(s) or NEGATIVE_TEMP_CUES.search(s)) and CRYSTAL_OUTCOME_CUES.search(s):
             return "crystallisation"
 
-        # drying
-        if DRYING_CUES.search(s) and "crystallization" not in fine_hits:
+        if DRYING_CUES.search(s) and ("crystallization" not in fine_hits) and (not CRYSTAL_OUTCOME_CUES.search(s)):
             return "drying"
 
-        # ✅ NEW RULE: if time appears before workup cue in same sentence, treat as reaction
-        if "workup_separation" in fine_hits and (("stirring_mixing" in fine_hits) or ("reaction" in fine_hits) or STIRRING_CUES.search(s)):
-            time_pos = _find_time_pos(s, text, value, units)
+        if "workup_separation" in fine_hits and (
+            ("stirring_mixing" in fine_hits) or ("reaction" in fine_hits) or STIRRING_CUES.search(s)
+        ):
+            time_pos = _find_time_pos(s_lower, text, value, units)
 
-            # use your learned workup regex if available; otherwise fallback cues
             workup_pos = _first_pattern_start("workup_separation", s)
             if workup_pos is None:
                 workup_pos = _first_match_start(WORKUP_CUES_FALLBACK, s)
@@ -683,6 +813,8 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
 
         return None
 
+    JUNK_VALUES = {'-', '.', '_', '?', '>', '<', ',', ')', '(', '[', ']', '{', '}', ':'}
+
     for t in (time_hits or []):
         value = str(t.get("value", "")).strip()
         units = str(t.get("units", "")).strip()
@@ -690,46 +822,82 @@ def reaction_time_breakdown2(time_hits, spacy_doc):
 
         if not value and not text:
             continue
-        if value in {'-', '.', '_', '?', '>', '<', ',', ')', '(', '[', ']'}:
+        if value in JUNK_VALUES:
             continue
 
-        seen_key = (value, units, text)
+
+        seen_key = (norm(value), norm(units), norm(text))
         if seen_key in seen:
             continue
 
-        sentence = sentence_containing_phrase(spacy_doc, text)
-        if sentence is None:
+
+        sent_span = sentence_span_containing_phrase(spacy_doc, text)
+
+        if sent_span is None:
             if units and units != "N/A" and value:
-                sentence = sentence_containing_phrase(spacy_doc, f"{value} {units}")
-            if sentence is None and value:
-                sentence = sentence_containing_phrase(spacy_doc, value)
+                sent_span = sentence_span_containing_phrase(spacy_doc, f"{value} {units}")
+            if sent_span is None and value:
+                sent_span = sentence_span_containing_phrase(spacy_doc, value)
 
-        sent = sentence or ""
-        hits = all_fine_hits(sent)
-        chosen = choose_fine(hits)
-        coarse = to_coarse(chosen)
+        sent_text = sent_span.text if sent_span is not None else ""
+        sent_start = int(sent_span.start) if sent_span is not None else -1
 
-        override = time_override(sent, hits, text, value, units)
+        # hits = all_fine_hits(sent_text)
+        hits = normalize_fine_hits(all_fine_hits(sent_text))
+        chosen_fine = choose_fine(hits)
+        coarse = to_coarse(chosen_fine)
+
+        override = time_override(sent_text, hits, text, value, units)
         if override is not None:
             coarse = override
 
-        item = {
+        bucket_item = {
             "value": value,
             "unit": units,
             "text": text,
             "context": {
-                "sentence": sent,
+                "sentence": sent_text,
+                "sent_start": sent_start,
                 "fine_labels": hits,
-                "chosen_fine": chosen,
+                "chosen_fine": chosen_fine,
+                "coarse_bucket": coarse,
                 "override_bucket": override or "",
             }
         }
+        buckets[coarse].append(bucket_item)
 
-        buckets[coarse].append(item)
+        # ---- event for steps (fine-step grouping)
+        step_event = {
+            "value": value,
+            "unit": units,
+            "text": text,
+            "sentence": sent_text,
+            "sent_start": sent_start,
+            "fine_step": chosen_fine,
+            "coarse_bucket": coarse,
+            "fine_labels": hits,
+            "override_bucket": override or "",
+        }
+        steps_map.setdefault(chosen_fine, []).append(step_event)
+
         seen.add(seen_key)
 
-    return buckets
+    for k in steps_map:
+        steps_map[k].sort(key=lambda e: (e["sent_start"], e["text"]))
 
+    steps_list = sorted(
+        [{"step": k, "events": v} for k, v in steps_map.items()],
+        key=lambda sv: (sv["events"][0]["sent_start"] if sv["events"] else 10**9, sv["step"])
+    )
+
+    for ck in buckets:
+        buckets[ck].sort(key=lambda it: (it["context"].get("sent_start", -1), it.get("text", "")))
+
+    return {
+        "buckets": buckets,
+        "steps": steps_list,
+        "steps_map": steps_map,
+    }
 
 
 def reaction_time_breakdown(react_time, spacy_doc):
@@ -851,7 +1019,7 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
       - crystallisation
       - drying
       - stability
-      - melting_temperature   ✅ NEW (mp / decomposition temps)
+      - melting_temperature
 
     Keeps specifics inside item["context"].
 
@@ -861,7 +1029,6 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
       3) Drying temps like "dried at 120 °C" => drying.
       4) Reaction-condition temps like "heated at 80 °C" => reaction.
     """
-    import re
 
     patterns = key_words_regex()
 
@@ -881,9 +1048,15 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
         "characterization",
         "reaction",
     ]
+    FINE_SYNONYMS = {
+    "crystallisation": "crystallization"
+    }
 
-    # ✅ NEW: melting_temperature bucket
-    COARSE_KEYS = ("reaction", "crystallisation", "drying", "stability", "melting_temperature")
+
+    COARSE_KEYS = ("reaction",
+                   "crystallisation",
+                   "drying", "stability",
+                   "melting_temperature")
 
     FINE_TO_COARSE = {
         "crystallization": "crystallisation",
@@ -907,6 +1080,9 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
 
     buckets = {k: [] for k in COARSE_KEYS}
     seen = set()
+
+    def normalize_fine_hits(hits):
+        return [FINE_SYNONYMS.get(h, h) for h in hits]
 
     def norm(s: str) -> str:
         return (s or "").strip().lower()
@@ -936,10 +1112,7 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
     def to_coarse(fine_label: str) -> str:
         return FINE_TO_COARSE.get(fine_label, "reaction")
 
-    # ----------------------------
-    # Temperature-specific cues
-    # ----------------------------
-    # Reaction-like condition language
+
     REACTION_TEMP_CUES = re.compile(
         r"(?i)\b("
         r"reaction mixture|solvothermal|hydrothermal|autoclave|teflon[-\s]?lined|"
@@ -949,10 +1122,10 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
         r")\b"
     )
 
-    # "at/to 80 °C" style indicator
+
     AT_TEMP_PATTERN = re.compile(r"(?i)\b(at|to)\s*[~≈]?\s*[-+]?\d")
 
-    # Crystal growth / crystallisation language
+
     CRYSTAL_GROWTH_CUES = re.compile(
         r"(?i)\b("
         r"crystal(?:s|line)?\s*(?:growth|grew|grown|growing)|"
@@ -961,7 +1134,6 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
         r")\b"
     )
 
-    # Cold-storage / freezer crystallisation cues
     COLD_ENV_CUES = re.compile(
         r"(?i)\b(freezer|refrigerator|fridge|cold\s*room|ice\s*bath|on\s*ice|in\s*ice|cryostat)\b"
     )
@@ -1058,6 +1230,7 @@ def reaction_temperature_breakdown2(temperature_hits, spacy_doc):
 
         sent = sentence or ""
         hits = all_fine_hits(sent)
+        hits = normalize_fine_hits(hits)
         chosen = choose_fine(hits)
         coarse = to_coarse(chosen)
 
