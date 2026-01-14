@@ -84,37 +84,37 @@ of paragraphs describing synthesis simply run the following code.
     # PDF extraction
 
     list_of_paragraphs = text_extractor.read_file(pdf_file_path)
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(    list_of_paragraphs)
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs)
 
 
     # html extraction
 
     list_of_paragraphs = text_extractor.read_file(html_file_path)
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(    list_of_paragraphs)
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs)
 
 
     # xml extraction
 
     list_of_paragraphs = text_extractor.read_file(xml_file_path)
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(    list_of_paragraphs)
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs)
 ```
 
 By default the paragraph sentiment model uses NN_tfv, which is the most
 accurate model. Below are a list of other models to select.
 
-1. Models with TFV features:
-    NN_tfv : Neural Network with TFV model
-    RF_tfv : Random Forest with TFV model
-    SVM_tfv : Support Vector Machine with TFV model
-    LR_tfv : Logistic Regression with TFV model
-    NB_tfv : Naive Bayes with TFV model
-    DT_tfv : Decision Tree with TFV model
-2. Models with CV features:
-    NN_CV : Neural Network with CV model
-    RF_CV : Random Forest with CV model
-    SVM_CV : Support Vector Machine with CV model
-    LR_CV : Logistic Regression with CV model
-    NB_CV : Naive Bayes with CV model
+1. Models with TFV features: \n
+    NN_tfv : Neural Network with TFV model\n
+    RF_tfv : Random Forest with TFV model\n
+    SVM_tfv : Support Vector Machine with TFV model\n
+    LR_tfv : Logistic Regression with TFV model\n
+    NB_tfv : Naive Bayes with TFV model\n
+    DT_tfv : Decision Tree with TFV model\n
+2. Models with CV features:\n
+    NN_CV : Neural Network with CV model\n
+    RF_CV : Random Forest with CV model\n
+    SVM_CV : Support Vector Machine with CV model\n
+    LR_CV : Logistic Regression with CV model\n
+    NB_CV : Naive Bayes with CV model\n
     DT_CV : Decision Tree with CV model
 
  To use any model, simply add the name of the model to the
@@ -122,6 +122,5 @@ accurate model. Below are a list of other models to select.
 
  ```Python
     list_of_paragraphs = text_extractor.read_file(xml_file_path)
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(    list_of_paragraphs, model="NN_CV")
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs, model="NN_CV")
  ```
-
