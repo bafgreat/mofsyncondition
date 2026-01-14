@@ -124,3 +124,7 @@ accurate model. Below are a list of other models to select.
     list_of_paragraphs = text_extractor.read_file(xml_file_path)
     synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs, model="NN_CV")
  ```
+
+ ## LICENSE
+
+ MIT license 
