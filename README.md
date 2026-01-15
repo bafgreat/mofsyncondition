@@ -103,20 +103,20 @@ By default the paragraph sentiment model uses NN_tfv. Below is a list of other m
 
 ## ML Model Performance (5-Fold Cross-Validation Averages)
 
-   | Rank | Model | Avg Accuracy | Avg Precision | Notes |
-   |------|-------|--------------|---------------|-------|
-   | 1 | SVM_tfv | 0.9905 | 0.8163 | Best overall accuracy |
-   | 2 | **NN_tfv** | 0.9903 | 0.8143 | **Default model** |
-   | 3 | RF_tfv | 0.9904 | 0.7730 | High accuracy, lower precision |
-   | 4 | RF_CV | 0.9902 | 0.7692 | Stable but conservative |
-   | 5 | NN_CV | 0.9889 | 0.8240 | High precision |
-   | 6 | LR_tfv | 0.9895 | 0.7853 | Fast baseline |
-   | 7 | LR_CV | 0.9885 | 0.8040 | Balanced baseline |
-   | 8 | SVM_CV | 0.9885 | 0.8124 | Robust alternative |
-   | 9 | DT_CV | 0.9865 | 0.7795 | Interpretable |
-   |10 | DT_tfv | 0.9851 | 0.7692 | Simple model |
-   |11 | NB_CV | 0.9837 | 0.8337 | Highest precision |
-   |12 | NB_tfv | 0.9657 | 0.0232 | Not recommended |
+| Rank | Model | Avg Accuracy | Avg Precision | Notes |
+|------|-------|--------------|---------------|-------|
+| 1 | SVM_tfv | 0.9905 | 0.8163 | Best overall accuracy |
+| 2 | **NN_tfv** | 0.9903 | 0.8143 | **Default model** |
+| 3 | RF_tfv | 0.9904 | 0.7730 | High accuracy, lower precision |
+| 4 | RF_CV | 0.9902 | 0.7692 | Stable but conservative |
+| 5 | NN_CV | 0.9889 | 0.8240 | High precision |
+| 6 | LR_tfv | 0.9895 | 0.7853 | Fast baseline |
+| 7 | LR_CV | 0.9885 | 0.8040 | Balanced baseline |
+| 8 | SVM_CV | 0.9885 | 0.8124 | Robust alternative |
+| 9 | DT_CV | 0.9865 | 0.7795 | Interpretable |
+|10 | DT_tfv | 0.9851 | 0.7692 | Simple model |
+|11 | NB_CV | 0.9837 | 0.8337 | Highest precision |
+|12 | NB_tfv | 0.9657 | 0.0232 | Not recommended |
 
  To use any model, simply add the name of the model to the
  function. e.g
