@@ -99,23 +99,24 @@ of paragraphs describing synthesis simply run the following code.
     synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs)
 ```
 
-By default the paragraph sentiment model uses NN_tfv, which is the most
-accurate model. Below are a list of other models to select.
+By default the paragraph sentiment model uses NN_tfv. Below is a list of other models.
 
-1. Models with TFV features: \n
-    NN_tfv : Neural Network with TFV model\n
-    RF_tfv : Random Forest with TFV model\n
-    SVM_tfv : Support Vector Machine with TFV model\n
-    LR_tfv : Logistic Regression with TFV model\n
-    NB_tfv : Naive Bayes with TFV model\n
-    DT_tfv : Decision Tree with TFV model\n
-2. Models with CV features:\n
-    NN_CV : Neural Network with CV model\n
-    RF_CV : Random Forest with CV model\n
-    SVM_CV : Support Vector Machine with CV model\n
-    LR_CV : Logistic Regression with CV model\n
-    NB_CV : Naive Bayes with CV model\n
-    DT_CV : Decision Tree with CV model
+## ML Model Performance (5-Fold Cross-Validation Averages)
+
+   | Rank | Model | Avg Accuracy | Avg Precision | Notes |
+      |------|-------|--------------|---------------|-------|
+      | 1 | SVM_tfv | 0.9905 | 0.8163 | Best overall accuracy |
+      | 2 | **NN_tfv** | 0.9903 | 0.8143 | **Default model** |
+      | 3 | RF_tfv | 0.9904 | 0.7730 | High accuracy, lower precision |
+      | 4 | RF_CV | 0.9902 | 0.7692 | Stable but conservative |
+      | 5 | NN_CV | 0.9889 | 0.8240 | High precision |
+      | 6 | LR_tfv | 0.9895 | 0.7853 | Fast baseline |
+      | 7 | LR_CV | 0.9885 | 0.8040 | Balanced baseline |
+      | 8 | SVM_CV | 0.9885 | 0.8124 | Robust alternative |
+      | 9 | DT_CV | 0.9865 | 0.7795 | Interpretable |
+      |10 | DT_tfv | 0.9851 | 0.7692 | Simple model |
+      |11 | NB_CV | 0.9837 | 0.8337 | Highest precision |
+      |12 | NB_tfv | 0.9657 | 0.0232 | Not recommended |
 
  To use any model, simply add the name of the model to the
  function. e.g
@@ -125,6 +126,6 @@ accurate model. Below are a list of other models to select.
     synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs, model="NN_CV")
  ```
 
- ## LICENSE
+## LICENSE
 
- MIT license 
+ MIT license
