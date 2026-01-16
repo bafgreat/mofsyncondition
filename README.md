@@ -11,7 +11,7 @@ The module reads **HTML files or PDF-derived text files**, uses **machine learni
 Extracting synthesis conditions from MOF literature is a key challenge in data-driven materials discovery.
 `mofsyncondition` addresses this problem by:
 
-- Reading journal articles in HTML or text format
+- Reading journal articles in HTML, pdf or xml format
 - Identifying synthesis-related paragraphs using ML-based classification
 - Extracting structured synthesis conditions from unstructured text
 - Generating datasets suitable for machine learning and LLM training
@@ -125,6 +125,32 @@ By default the paragraph sentiment model uses NN_tfv. Below is a list of other m
     list_of_paragraphs = text_extractor.read_file(xml_file_path)
     synthetic_paragraphs = text_extractor.get_synthetic_paragraph(list_of_paragraphs, model="NN_CV")
  ```
+
+### 2. Extract paragaraph level synthetic condition from file
+
+Suppose you have an document (pdf, html, xml) and wish to extract
+all synthesis conditions. The below lines of code it the faster way
+to do so. This is faster than using transformer models and take large
+documents and parse thousand of files.
+
+```Python
+import spacy
+from mofsyncondition.synthesis_conditions.extractor import MOFSynConditionExtractor
+from mofsyncondition.io import filetyper
+
+data_extractor = MOFSynConditionExtractor()
+
+transformer_dataset = []
+standard_dataset = []
+file_path = "./data_test/Test2.pdf"
+
+all_files = ["./data_test/Test2.pdf", "./data_test/ABAFUH.xml", "./data_test/Test3.html"]
+for file_path in all_files:
+    syn_data  = data_extractor.syn_data_from_document(file_path)
+    for paragraph, data_style_1, data_style_2 in syn_data:
+        transformer_dataset.append({'paragraph':paragraph, "condition":data_style_1})
+        standard_dataset.append({'paragraph':paragraph, "condition":data_style_2})
+```
 
 ## LICENSE
 

@@ -5,14 +5,20 @@ __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 
 import re
+import spacy
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union, Iterable
+from pathlib import Path
 
 from mofsyncondition.doc import convert_html_to_text
 from mofsyncondition.conditions import conditions_extraction
 from mofsyncondition.conditions import chemical_entity_regex
 from mofsyncondition.synparagraph import extract_synthesis_paragraphs
 from mofsyncondition.doc import doc_parser
+
+ParagraphInput = Union[str, Path, List[str], Iterable[str]]
+
+nlp = spacy.load("en_chem_ner")
 
 
 @dataclass
@@ -77,35 +83,18 @@ class MOFSynConditionExtractor:
         pattern_str = r"\b(?:{mult})?(?:{metals})\b".format(mult=multiplicity, metals=all_metals)
         return re.compile(pattern_str)
 
-    def read_file(self, file_path: str) -> str:
+    def get_synthetic_paragraph(self, source: ParagraphInput, model: Optional[str] = None):
         """
-        A function to read a file path and normalise it to a list of plain text.
-        The function reads both html and pdf files. Use return
-        of this function as input for get_synthetic_paragraph function.
-
-        Parameters
-        ----------
-            file_path: str.type
-                The path to the file to be read.
-
-        Returns
-        -------
-            plain_text: str.type
-                The content of the file as a plain text.
-        """
-        return convert_html_to_text.file_2_list_of_paragraphs(file_path)
-
-    def get_synthetic_paragraph(self, plain_text, model=None):
-        """
-        A function that extract synthetic paragraphs from list of plain text.
-        The function converts plain text to list of read_file function. It uses
-        uses neural network with tfv model as default model
+        A function that extract synthetic paragraphs from a file or
+        list of paragraphs. The function uses neural
+        network with tfv model as default model
         to extract synthetic paragraphs.
 
         Parameters
         ----------
-            plain_text: list.type
-                list of plain text which is a return from .
+            source: str or Path or list of strings
+
+
             model: str.type
                 The paragraph classification model to use.
                 If None, uses self.paragraph_model.
@@ -133,10 +122,22 @@ class MOFSynConditionExtractor:
                     DT_CV : Decision Tree with CV model
         """
         model = model or self.paragraph_model
-        return extract_synthesis_paragraphs.\
-            all_synthesis_paragraphs(plain_text,
-                                     model=model
-                                     )
+
+        if isinstance(source, (str, Path)):
+            paragraphs = convert_html_to_text.file_2_list_of_paragraphs(str(source))
+
+        elif isinstance(source, (list, tuple)):
+            paragraphs = list(source)
+
+        else:
+            try:
+                paragraphs = list(source)
+            except TypeError as e:
+                raise TypeError(
+                    "source must be a filepath (str/Path) or an iterable of paragraph strings"
+                ) from e
+
+        return extract_synthesis_paragraphs.all_synthesis_paragraphs(paragraphs, model=model)
 
     @staticmethod
     def _iter_chemicals(obj):
@@ -198,13 +199,13 @@ class MOFSynConditionExtractor:
         wanted = set(list_content)
         return [tok for tok in all_tokens if tok in wanted]
 
-    def solvents_in_text(self, tokens):
+    def solvents_in_text(self, all_tokens):
         """
         A function to find solvents from a list of chemicals
 
         Parameters
         ----------
-            tokens: list of strings
+            all_tokens: list of strings
                 List of chemical tokens.
 
         Returns
@@ -212,7 +213,7 @@ class MOFSynConditionExtractor:
             solvents: list of strings
         """
         solvents: List[str] = []
-        for token in tokens:
+        for token in all_tokens:
             s = token.strip()
             if self._solvents_pattern.fullmatch(s):
                 solvents.append(s)
@@ -220,13 +221,13 @@ class MOFSynConditionExtractor:
                 solvents.extend([m.group(0) for m in self._solvents_pattern.finditer(token)])
         return list(set(solvents))
 
-    def modulators_in_text(self, tokens):
+    def modulators_in_text(self, all_tokens):
         """
         A function to find modulators from a list of chemicals
 
         Parameters
         ----------
-            tokens: list of strings
+            all_tokens: list of strings
                 List of chemical tokens.
 
         Returns
@@ -234,7 +235,7 @@ class MOFSynConditionExtractor:
             modulators: list of strings
         """
         modulators: List[str] = []
-        for token in tokens:
+        for token in all_tokens:
             s = token.strip()
             if self._modulators_pattern.fullmatch(s):
                 modulators.append(s)
@@ -242,7 +243,7 @@ class MOFSynConditionExtractor:
                 modulators.extend([m.group(0) for m in self._modulators_pattern.finditer(token)])
         return list(set(modulators))
 
-    def metal_precursors_in_text(self, tokens):
+    def metal_precursors_in_text(self, all_tokens):
         """
         A function to extract metal precursors from a list of chemicals
 
@@ -256,25 +257,36 @@ class MOFSynConditionExtractor:
             metal_salt: list of strings
         """
         flat: List[str] = []
-        for t in tokens:
-            flat.extend(self._iter_chemicals(t))
+        for token in all_tokens:
+            flat.extend(self._iter_chemicals(token))
 
         metal_salt = [chem for chem in flat if re.match(self._metal_precursor_pattern, chem)]
         return list(set(metal_salt))
 
-    def mof_alias_in_text(self, tokens):
+    def mof_alias_in_text(self, all_tokens):
         """
         A function to find MOF aliases in a list of tokens
 
         Parameters
         ----------
-            tokens: list of strings
+            all_tokens: list of strings
 
         Returns
         -------
             mofs: list of strings
         """
-        return self.select_content(tokens, self._mof_alias_list)
+        mofs: List[str] = []
+        for token in all_tokens:
+            s = str(token).strip()
+
+            # if the whole token is a MOF alias
+            if self._mof_alias_list.fullmatch(s):
+                mofs.append(s)
+            else:
+                # if there are embedded matches inside the token
+                mofs.extend([m.group(0) for m in self._mof_alias_list.finditer(s)])
+
+        return list(set(mofs))
 
     def all_reaction_temperature(self, par_tokens, par_doc):
         """
@@ -325,20 +337,20 @@ class MOFSynConditionExtractor:
         """
         return conditions_extraction.get_atmosphere_toks(par_tokens)
 
-    def get_synthetic_method(self, tokens):
+    def get_synthetic_method(self, all_tokens):
         """
         A function to extract synthetic methods from a list of tokens
 
         Parameters
         ----------
-            tokens: list of strings
+            all_tokens: list of strings
                 Tokenized paragraph tokens.
 
         Returns
         -------
             synthesis_method: list of strings
         """
-        synthesis_method = self.select_content_for_method(tokens, self._method_pattern)
+        synthesis_method = self.select_content_for_method(all_tokens, self._method_pattern)
         synthesis_method = [m.capitalize() for m in synthesis_method]
         synthesis_method = [chemical_entity_regex.method_abbreviation(m) for m in synthesis_method]
         return list(set(synthesis_method))
@@ -524,3 +536,28 @@ class MOFSynConditionExtractor:
         data["synthetic_methods"] = synthetic_methods
 
         return data, data_2
+
+    def syn_data_from_document(self, filename: str):
+        for paragraph in self.get_synthetic_paragraph(filename):
+            chemical_names = [ent.text for ent in nlp(paragraph).ents if ent.label_ == "CHEMICAL"]
+            data, data_2 = self.extract_synthetic_info(paragraph, chemical_names)
+            yield paragraph, data, data_2
+
+
+def read_file(file_path: str) -> str:
+    """
+    A function to read a file path and normalise it to a list of plain text.
+    The function reads both html and pdf files. Use return
+    of this function as input for get_synthetic_paragraph function.
+
+    Parameters
+    ----------
+        file_path: str.type
+            The path to the file to be read.
+
+    Returns
+    -------
+        plain_text: str.type
+            The content of the file as a plain text.
+    """
+    return convert_html_to_text.file_2_list_of_paragraphs(file_path)

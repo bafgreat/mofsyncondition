@@ -28,30 +28,33 @@ def test_abafuh_xml_extraction(text_extractor, data_dir):
     abafuh_xml = data_dir / "ABAFUH.xml"
     assert abafuh_xml.exists(), f"Missing file: {abafuh_xml}"
 
-    plaintext = text_extractor.read_file(str(abafuh_xml))
+    plaintext = extractor.read_file(str(abafuh_xml))
     assert len(plaintext) == 88
 
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(plaintext)
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(str(abafuh_xml))
     assert len(synthetic_paragraphs) == 10
+    assert len(text_extractor.get_synthetic_paragraph(plaintext)) == 10
 
 
 def test_pdf_extraction(text_extractor, data_dir):
     test2_pdf = data_dir / "Test2.pdf"
     assert test2_pdf.exists(), f"Missing file: {test2_pdf}"
 
-    plaintext = text_extractor.read_file(str(test2_pdf))
+    plaintext = extractor.read_file(str(test2_pdf))
     assert len(plaintext) == 89
 
-    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(plaintext)
+    synthetic_paragraphs = text_extractor.get_synthetic_paragraph(str(test2_pdf))
     assert len(synthetic_paragraphs) == 13
+    assert len(text_extractor.get_synthetic_paragraph(plaintext)) == 13
 
 
 def test_html_extraction_with_nb_model(text_extractor, data_dir):
     test3_html = data_dir / "Test3.html"
     assert test3_html.exists(), f"Missing file: {test3_html}"
 
-    plaintext = text_extractor.read_file(str(test3_html))
+    plaintext = extractor.read_file(str(test3_html))
     assert len(plaintext) == 853
 
     synthetic_paragraphs = text_extractor.get_synthetic_paragraph(plaintext)
     assert len(synthetic_paragraphs) == 6
+    assert len(text_extractor.get_synthetic_paragraph(str(test3_html))) == 6
