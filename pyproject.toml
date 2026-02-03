@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mofsyncondition"
-version = "0.1.1"
+version = "0.1.2"
 description = "A python too for extracting synthesis condition of MOFs directly from journal articles in any file format (html, xml and pdf"
 authors = ["Dinga Wonanke <dak52@uclive.ac.nz>"]
 license = "MIT"
@@ -12,6 +12,13 @@ include = [
   { path = "mofsyncondition/nltk_data/**", format = "sdist" },
   { path = "mofsyncondition/nltk_data/**", format = "wheel" }
 ]
+
+
+[tool.poetry.urls]
+Repository = "https://github.com/bafgreat/mofsyncondition"
+Author-Github = "https://github.com/bafgreat"
+Author-Website = "https://www.dingawonanke.com"
+
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.14"
@@ -38,9 +45,7 @@ pytest = "^9.0.2"
 en-chem-ner = "^0.1.0"
 wordcloud = "^1.9.5"
 notebook = "^7.5.2"
-
-
-
+en-mof-chem-ner = "^0.0.1"
 
 [tool.poetry.scripts]
 

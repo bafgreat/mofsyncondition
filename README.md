@@ -45,6 +45,57 @@ The module aims to extract synthesis parameters such as:
 
 ---
 
+## Named Entity Recognition for Chemical Reagents
+
+In addition to intelligent regular expressions, `mofsyncondition` uses a **trained spaCy Named Entity Recognizer (NER)** to identify chemical reagents and synthesis-related entities directly from raw text and paragraph inputs.
+
+The model, **`en_mof_chem_ner`**, is specialized for MOF literature and recognizes the following domain-specific entity types:
+
+| Component | Labels |
+| --- | --- |
+| **`ner`** | `ATMOSPHERE`, `METAL_SALT`, `MODULATOR`, `MOF`, `ORGANIC_LIGAND`, `SOLVENT`, `SYNTH_METHOD` |
+
+This NER layer enables reliable extraction of:
+
+- Metal precursors and salts
+- Organic ligands / linkers
+- Solvents and modulators
+- Synthetic methods (e.g., solvothermal, hydrothermal)
+- Reaction atmosphere (e.g., air, nitrogen, argon)
+- MOF names (when explicitly stated)
+
+These structured entities are then combined with regex-based extraction to produce high-quality synthesis-condition datasets for machine learning and LLM fine-tuning.
+
+---
+
+### NER Model Performance
+
+Overall evaluation scores on held-out data:
+
+| Metric | Score |
+| --- | --- |
+| `ENTS_F` | 91.66 |
+| `ENTS_P` | 92.78 |
+| `ENTS_R` | 90.56 |
+| `TOK2VEC_LOSS` | 26365.16 |
+| `NER_LOSS` | 78555.25 |
+
+---
+
+### Per-Entity Performance
+
+| Entity Type | Precision (P) | Recall (R) | F1-score (F) |
+|------------|---------------|------------|--------------|
+| METAL_SALT | 0.9292 | 0.9082 | 0.9186 |
+| ORGANIC_LIGAND | 0.7600 | 0.7157 | 0.7372 |
+| SOLVENT | 0.9815 | 0.9900 | 0.9857 |
+| MODULATOR | 0.9722 | 0.9560 | 0.9640 |
+| ATMOSPHERE | 0.9715 | 0.9662 | 0.9689 |
+| SYNTH_METHOD | 0.9970 | 0.9941 | 0.9955 |
+| MOF | 0.6797 | 0.4973 | 0.5744 |
+
+---
+
 ## Installation
 
 Clone the repository and install the package locally:
@@ -135,7 +186,7 @@ documents and parse thousand of files.
 
 ```Python
 import spacy
-from mofsyncondition.synthesis_conditions.extractor import MOFSynConditionExtractor
+from mofsyncondition.synthesis_conditions.mof_synthesis_conditions import MOFSynConditionExtractor
 from mofsyncondition.io import filetyper
 
 data_extractor = MOFSynConditionExtractor()

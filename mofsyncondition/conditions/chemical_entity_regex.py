@@ -3,6 +3,8 @@ from __future__ import print_function
 __author__ = "Dr. Dinga Wonanke"
 __status__ = "production"
 import re
+from typing import Dict, Pattern, Set, Optional, List, Any
+import pandas as pd
 from collections import defaultdict
 import pubchempy as pcp
 from pymatgen.core import Composition
@@ -144,7 +146,428 @@ from mofsyncondition.doc import doc_parser
 #     return solvent_name_options
 
 
-import re
+_TIME_UNITS = r"(?:sec|secs|second|seconds|min|mins|minute|minutes|hr|hrs|hour|hours|day|days|wk|wks|week|weeks|month|months|year|years|(?-i:h)|(?-i:d))"
+
+_TIME_RE = re.compile(
+    rf"""
+    (?P<expr>
+        # ---- numeric range: 1–2 h, 0 to 6 hours ----
+        (?:
+            \b\d+(?:\.\d+)?\s*(?:–|-|to)\s*\d+(?:\.\d+)?\s+{_TIME_UNITS}\b
+        )
+        |
+        # ---- single numeric: 15 min, 2 hours ----
+        (?:
+            \b\d+(?:\.\d+)?\s+{_TIME_UNITS}\b
+        )
+        |
+        # ---- common non-numeric time phrases ----
+        (?:
+            \bovernight\b
+            |
+            \b(?:briefly|shortly)\b
+            |
+            \b(?:a\s+while|some\s+time)\b
+            |
+            \ba\s+(?:short|long)\s+time\b
+            |
+            \bperiod\s+of\s+(?:time|days|weeks|months|years)\b
+            |
+            \b(?:few|several|many)\s+(?:seconds|minutes|hours|days|weeks|months|years)\b
+            |
+            \b(?:a|an)\b(?:\s+|[--–—]+)(?:hour|day|week|month|year)s?\b
+        )
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+_TEMP_UNIT = r"(?:(?:°\s*)?(?:c|f)|(?-i:K))\b"
+
+_NUM = r"(?:\d+(?:\.\d+)?)"
+_RANGE_SEP = r"(?:–|-|to)"
+_COMP = r"(?:~|≈|ca\.?|c\.a\.?|approx\.?|approximately|about|around|>|<|≥|≤|above|below|under|over)\s*"
+
+# Ambiguous temperature phrases
+# - RT, r.t., room temperature, ambient temperature, at ambient, etc.
+_AMBIG_TEMP = r"""
+(?:\broom\s*temperature\b)
+|
+(?:\bambient\s*temperature\b)
+|
+(?:\broom\s*temp(?:erature)?\b)
+|
+(?:\bambient\s*temp(?:erature)?\b)
+|
+(?:\bat\s+(?:room|ambient)\b)          # "at room", "at ambient"
+|
+(?:\b(?:r\.?\s*t\.?|rt)\b)             # RT / r.t. / rt
+"""
+
+_TEMP_LIST_RE = re.compile(
+    rf"""
+    (?P<prefix>[\(\[]?)                              # optional opening bracket
+    (?P<numlist>
+        -?\d+(?:\.\d+)?                              # first number
+        (?:\s*,\s*-?\d+(?:\.\d+)?)+                  # more numbers separated by commas
+    )
+    \s*(?P<unit>°\s*[cCfF]|(?-i:K))\b                # unit appears once (°C/°F or uppercase K)
+    (?P<suffix>[\)\]]?)                              # optional closing bracket
+    """,
+    re.VERBOSE
+)
+
+_TEMP_RE = re.compile(
+    rf"""
+    (?P<expr>
+        # range
+        (?:
+            \b{_COMP}?\s*{_NUM}\s*{_TEMP_UNIT}
+            \s*{_RANGE_SEP}\s*
+            { _COMP }?\s*{_NUM}\s*{_TEMP_UNIT}
+        )
+        |
+        # single
+        (?:
+            \b(?:{_COMP})?
+            -?{_NUM}\s*{_TEMP_UNIT}
+        )
+        |
+        # ambiguous RT/ambient
+        (?:
+            {_AMBIG_TEMP}
+        )
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+_AN_A_UNIT_RE = re.compile(r"^\s*(a|an)\s+(hour|day|week|month|year)\s*$", re.IGNORECASE)
+
+
+
+_SPEC_VETO_RE = re.compile(
+    r"\b(NMR|HNMR|C\s*NMR|IR|FT-IR|UV-Vis|Raman|ESI|MS|m/z|Hz|ppm|CDCl3|CD2Cl2|DMSO|MeOD|δ|J\s*=)\b",
+    re.IGNORECASE,
+)
+
+_ISOTOPE_VETO_RE = re.compile(
+    r"""
+    \b(
+        13C|14C|
+        1H|2H|3H|
+        15N|
+        17O|18O|
+        19F|
+        31P|
+        29Si
+    )\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
+
+_IR_PEAK_TOKEN_RE = re.compile(r"\b\d{3,4}\s*(?:vw|w|m|s|vs|br|sh)\b", re.IGNORECASE)
+
+_BUCKET_VETO_RE = re.compile(
+    r"\b(?:NMR|HNMR|C\s*NMR|IR|FT-IR|UV-Vis|Raman|ESI|MS|m/z|ppm|Hz|PXRD|XRPD|X[-\s]?ray|diffraction)\b",
+    re.IGNORECASE,
+)
+
+_NMR_CCOUNT_VETO_RE = re.compile(
+    r"^\(?\s*\d+\s*C\s*,",
+    re.IGNORECASE
+)
+
+_LABEL_1C_2C_VETO = re.compile(r"^-?\d+(?:\.\d+)?[cCfF]$")
+
+_NUMERIC_HINT = re.compile(r"\d")
+
+
+def _looks_like_peak_list(text: str) -> bool:
+    """Return True if `text` looks like an IR peak list (multiple cm-1 + intensity tokens)."""
+    return len(_IR_PEAK_TOKEN_RE.findall(text or "")) >= 3
+
+
+def _looks_like_spectroscopy(text: str, start: int, end: int, window: int = 60) -> bool:
+    """Return True if a match span is near spectroscopy-related tokens."""
+    lo = max(0, start - window)
+    hi = min(len(text), end + window)
+    return bool(_SPEC_VETO_RE.search((text or "")[lo:hi]))
+
+
+_BUCKET_KEYWORDS: Dict[str, Set[str]] = {
+    "reaction": {
+        "react", "reaction", "reflux", "refluxed",
+        "stir", "stirred", "stirring", "agitating", "agitated",
+        "heated", "heat", "heating", "boil", "boiled", "boiling",
+        "solvothermal", "hydrothermal", "autoclave", "autogenous pressure",
+        "microwave", "irradiated", "irradiation",
+        "spin-coating", "annealed", "calcined",
+        "sonicate", "sonicated", "sonication", "ultrasonic", "ultrasonically",
+        "milling", "ground", "grinding", "mortar",
+        "precipitate", "precipitated", "precipitation",
+        "synthesis", "synthesized", "prepared", "conversion",
+        "dropwise", "added", "charged",
+        "flushed", "purge", "purged", "nitrogen", "adsorption", "adsorbed", "adsorbent",
+        "uptake", "captured", "capture", "removed", "removal",
+        "release", "released", "release rate",
+        "exchange", "exchanged", "ion exchange", "soaked",
+        "equilibrium", "plateau", "kinetics", "pseudo-second-order",
+        "efficiency", "percent", "remained almost constant",
+        "dispersed", "suspension", "shaken", "gently shaken",
+        "aqueous solution", "in water", "refluexed", "obtained", "mixed",
+        "rate", "products", "reactor", "refluxing", "convert", "prepare",
+        "separated", "conversions", "solution", "dissolved"
+    },
+
+    "crystallisation": {
+        "crystal", "crystals", "crystalline","crystalline", "crystallinity",
+        "crystall", "crystallise", "crystallize", "crystallisation", "crystallization",
+        "single crystal", "x-ray diffraction", "xray diffraction",
+        "diffusion", "vapour diffusion", "vapor diffusion", "interdiffused", "interdiffuse",
+        "slow evaporation", "evaporation", "evaporate", "evaporated",
+        "standing", "left to stand", "stood", "undisturbed",
+        "grown", "grow", "nucleat", "blocks", "plates", "needles", "prisms", "octahedra",
+        "suitable for x-ray", "suitable for xray", "suitable for diffraction",
+        "deposited", "deposition", "formed", "isolated within", "obtained within",
+        "crop", "mother liquor",
+    },
+
+    "drying": {
+        "dry", "dried", "drying",
+        "vacuum", "in vacuo", "under vacuum",
+        "evacuated", "degassed", "degassing",
+        "activated", "activation", "outgassed",
+        "desiccator", "oven",
+        "distillation", "distilled", "removed by distillation",
+        "removed under reduced pressure", "reduced pressure",
+        "filtered", "filtration", "decanted", "washed", "rinsed",
+        "centrifuge", "centrifuged", "centrifugation",
+        "collected", "collected by", "vacuo", "lyophilized",
+    },
+
+    "stability": {
+        "stable", "stability",
+        "retained", "maintained", "unchanged", "no change", "no changes",
+        "decompose", "decomposition",
+        "cycl", "cycle", "cycles", "cycling",
+        "aged", "aging", "stored", "storage", "keep in air", "exposed to air",
+        "air sensitive", "sensitive to air", "turned to", "changed in color",
+        "months", "weeks",
+        "protected from light", "kept in dark",
+    },
+
+    "characterisation": {
+        "infrared", "ir", "ft-ir",
+        "uv-vis", "uv/vis", "raman",
+        "lcms", "hplc", "retention time",
+        "absorption peak", "peak", "estimated at",
+        "spectra", "spectrum",
+        "xrd", "pxrd", "xrpd", "diffraction pattern",
+        "icp-oes", "fluorescence", "cuvette", "incubation", "incubated", "incubator",
+        "cells", "cell lines", "seeded", "cultured", "culture",
+        "dmeme", "dmem", "pbs", "fbs", "serum",
+        "mtt", "trypsin", "microtiter", "well plate", "96-well",
+        "37 °c", "co2", "humidified", "plate shaker",
+        "stained", "fix", "fixed", "lysis", "rnase", "proteinase k",
+        "electrophoresis", "gel", "coverslip", "microslide", "Yield",
+        "Elemental analysis", "MPa", "data", "NMR", "pressed"
+    },
+}
+
+
+_BUCKET_WEIGHTS: Dict[str, Dict[str, int]] = {
+    "reaction": {
+        r"\b(?:reflux|solvothermal|hydrothermal|autoclave|microwave)\b": 3,
+        r"\b(?:stir(?:red|ring)?|heated|boil(?:ed|ing)?|sonicat(?:e|ed|ion))\b": 2,
+    },
+    "crystallisation": {
+        r"\b(?:crystall(?:i[sz]ation|ize|ised|ized)?|single[-\s]?crystal|nucleat(?:e|ion)|slow\s+evaporation)\b": 3,
+        r"\b(?:diffusion|grown|crystals?)\b": 2,
+    },
+    "drying": {
+        r"\b(?:vacuum|desiccator|degass(?:ed|ing)?|activated|activation|in\s+vacuo|under\s+vacuum)\b": 3,
+        r"\b(?:dried|drying|oven)\b": 2,
+    },
+    "stability": {
+        r"\b(?:cycling|cycles?|retained|maintained|unchanged|aged|aging|storage)\b": 2,
+        r"\b(?:decompos(?:e|ed|ition)|stable|stability)\b": 3,
+    },
+}
+
+
+def _kw_to_regex(kw: str) -> str:
+    """
+    Convert keyword/phrase into a safe regex.
+    - If it already looks like a regex, keep it.
+    - Phrases get flexible whitespace/hyphen between tokens.
+    - Single words get word boundaries.
+    """
+    kw = (kw or "").strip()
+    if not kw:
+        return ""
+
+    looks_regex = any(ch in kw for ch in ["\\b", "(", ")", "[", "]", "?", "+", "|", "{", "}", "^", "$"])
+    if looks_regex:
+        return kw
+
+    if " " in kw or "-" in kw:
+        parts = re.split(r"[\s\-]+", kw)
+        parts_esc = [re.escape(p) for p in parts if p]
+        sep = r"(?:\s+|[-–—])"
+        return r"\b" + sep.join(parts_esc) + r"\b"
+
+    return r"\b" + re.escape(kw) + r"\b"
+
+
+def _expand_temp_lists(text: str) -> str:
+    """
+    Expand '120, 140, 160, 180 °C' -> '120 °C, 140 °C, 160 °C, 180 °C'
+    so the standard temperature regex can pick each one up.
+    """
+    def repl(m: re.Match) -> str:
+        unit = m.group("unit")
+        nums = [n.strip() for n in m.group("numlist").split(",")]
+        expanded = ", ".join(f"{n} {unit}" for n in nums)
+        return f"{m.group('prefix')}{expanded}{m.group('suffix')}"
+    return _TEMP_LIST_RE.sub(repl, text or "")
+
+
+def compile_bucket_patterns(
+    bucket_keywords: Dict[str, Set[str]],
+    *,
+    flags: int = re.IGNORECASE
+) -> Dict[str, Pattern]:
+    """Compile a regex per bucket from the keyword/phrase set."""
+    compiled: Dict[str, Pattern] = {}
+    for bucket, kws in bucket_keywords.items():
+        pats = [p for p in (_kw_to_regex(k) for k in kws) if p]
+        compiled[bucket] = re.compile("|".join(f"(?:{p})" for p in pats), flags) if pats else re.compile(r"(?!x)x")
+    return compiled
+
+
+_BUCKET_RES: Dict[str, Pattern] = compile_bucket_patterns(_BUCKET_KEYWORDS)
+
+
+def _score_bucket(ctx: str, bucket_re: Pattern, bucket_name: str) -> int:
+    """Score a bucket based on keyword hits + optional weighted patterns."""
+    hits = len(bucket_re.findall(ctx))
+    score = hits
+    for pat, w in _BUCKET_WEIGHTS.get(bucket_name, {}).items():
+        if re.search(pat, ctx, flags=re.IGNORECASE):
+            score += w
+    return score
+
+
+def coarse_bucket_from_context(
+    text: str,
+    start: int,
+    end: int,
+    *,
+    window: int = 200,
+) -> str:
+    """Assign a coarse bucket based on weighted keyword hits in a local context window."""
+    text = text or ""
+    lo = max(0, start - window)
+    hi = min(len(text), end + window)
+    ctx = text[lo:hi]
+
+    # Optional veto hook (kept as in your original)
+    if _BUCKET_VETO_RE.search(ctx):
+        pass
+
+    scores = {b: _score_bucket(ctx, r, b) for b, r in _BUCKET_RES.items()}
+    best_bucket, best_score = max(scores.items(), key=lambda kv: kv[1])
+    return best_bucket if best_score > 0 else "other"
+
+def _infer_temp_scale(expr: str) -> str:
+    e = (expr or "").strip()
+    el = e.lower()
+
+    if re.search(r"\b(room|ambient)\b", el) or re.search(r"\b(r\.?\s*t\.?|rt)\b", el):
+        return "ambient/RT"
+
+    # Kelvin ONLY if uppercase K
+    if re.search(r"\b-?\d+(?:\.\d+)?\s*(?-i:K)\b", e):
+        return "kelvin"
+    if re.search(r"\b-?\d+(?:\.\d+)?\s*(?:°\s*)?c\b", el):
+        return "celsius"
+    if re.search(r"\b-?\d+(?:\.\d+)?\s*(?:°\s*)?f\b", el):
+        return "fahrenheit"
+
+    return "unknown"
+
+
+def _is_numeric_text(text: str) -> bool:
+    """Return True if any digit appears in text."""
+    return bool(_NUMERIC_HINT.search(text or ""))
+
+
+def _infer_unit(expr: str) -> str:
+    """Infer a normalized unit label from the matched time expression."""
+    e = (expr or "").lower()
+    if "overnight" in e:
+        return "N/A"
+
+    for unit, aliases in [
+        ("seconds", ("s", "sec", "secs", "second", "seconds")),
+        ("minutes", ("min", "mins", "minute", "minutes")),
+        ("hours",   ("h", "hr", "hrs", "hour", "hours")),
+        ("days",    ("d", "day", "days")),
+        ("weeks",   ("w", "wk", "wks", "week", "weeks")),
+        ("months",  ("month", "months")),
+        ("years",   ("year", "years")),
+    ]:
+        if any(re.search(rf"\b{re.escape(a)}\b", e) for a in aliases):
+            return unit
+
+    return "N/A"
+
+
+def _sentence_span(text: str, start: int, end: int) -> str:
+    """Naive sentence extraction: find nearest .?! boundaries around a match span."""
+    text = text or ""
+    prev = max(text.rfind(".", 0, start), text.rfind("?", 0, start), text.rfind("!", 0, start))
+    prev = 0 if prev == -1 else prev + 1
+    nxt_candidates = [text.find(".", end), text.find("?", end), text.find("!", end)]
+    nxt_candidates = [c for c in nxt_candidates if c != -1]
+    nxt = (min(nxt_candidates) + 1) if nxt_candidates else len(text)
+    return text[prev:nxt].strip()
+
+
+def _ensure_spacy_sentence_boundaries(nlp: Any) -> Any:
+    """
+    Ensure the provided spaCy pipeline yields doc.sents.
+    - If parser or senter exists, fine.
+    - Otherwise, tries to add sentencizer.
+    """
+    if not hasattr(nlp, "pipe_names"):
+        return nlp
+    if ("parser" in nlp.pipe_names) or ("senter" in nlp.pipe_names) or ("sentencizer" in nlp.pipe_names):
+        return nlp
+    try:
+        nlp.add_pipe("sentencizer")
+    except Exception:
+        pass
+    return nlp
+
+
+def _sentence_span_spacy(text: str, start: int, end: int, nlp: Any) -> str:
+    """
+    Sentence extraction via spaCy, with fallback to _sentence_span.
+    """
+    try:
+        nlp = _ensure_spacy_sentence_boundaries(nlp)
+        doc = nlp(text or "")
+        for sent in doc.sents:
+            if start < sent.end_char and end > sent.start_char:
+                return sent.text.strip()
+    except Exception:
+        pass
+    return _sentence_span(text, start, end)
+
 
 def clean_chemicals(chemicals):
     """
@@ -156,37 +579,28 @@ def clean_chemicals(chemicals):
         -> ["Cu2O", "nitrogen", "ethanol"]
     """
 
-    # wavenumber units
     RE_WAVENUMBER = re.compile(r"(?i)\bcm\s*[−-]?\s*1\b|\bcm\s*\^\s*[−-]?\s*1\b")
 
-    # NMR tokens like 1H, 13C{1H}, 31P, 19F; also plain hydrogen counts like 16H
     RE_NMR_ISOTOPE = re.compile(
         r"(?ix)^\s*\d{1,3}\s*(?:H|C|N|O|P|F|Si|B|S)\s*(?:\{\s*\d{1,3}\s*H\s*\})?\s*$"
     )
     RE_H_COUNT = re.compile(r"(?i)^\s*\d+\s*H\s*$")
 
-    # IR/Raman-like short tokens: "O 1617", "νC=O 1617", "C=O 1617"
     RE_SPECTRO_LINE = re.compile(
         r"(?ix)^\s*(?:ν|nu)?\s*[A-Za-z]{1,4}\s*[-=≡]?\s*[A-Za-z]{0,4}\s*\d{3,4}\s*$"
     )
 
-    # Spectral assignment fragments (not actual reagents): CH, CH2, CH3, OH, NH2, etc.
     RE_FRAGMENT = re.compile(
         r"(?ix)^\s*(?:CH|CH2|CH3|OH|OH2|NH|NH2|NH3|CO|CS|CN|NO2|C2O4)\s*$"
     )
 
-    # Single element symbols ONLY (Co, Fe, O, Cu, Zn, ...)
     RE_ELEMENT = re.compile(r"^\s*[A-Z][a-z]?\s*$")
 
-    # junk tokens
     RE_JUNK = re.compile(r"^\s*[\W_]+?\s*$")
 
-    # ✅ remove things like "1S", "2S", "2 s" when they are standalone junk tokens
-    # (keeps real chemicals like "H2S" because that has digits+letters but not just S)
     RE_STANDALONE_S_TOKEN = re.compile(r"(?i)^\s*\d+\s*s\s*$")  # "2S", "2 s", "15 s"
 
-    # ✅ remove appearance/color phrases (these are NOT chemicals)
-    # catches: "light green", "dark red", "blue powder", "white precipitate", "clear green filtrate", etc.
+
     COLOR_WORDS = (
         "white|black|grey|gray|red|orange|yellow|green|blue|violet|purple|pink|brown|teal|cyan|magenta|colorless"
     )
@@ -946,6 +1360,144 @@ def reaction_time_breakdown(react_time, spacy_doc):
     return reaction_time, stability, drying, crystalization_time
 
 
+def extract_time_events_from_paragraph(
+    paragraph: str,
+    doi: Optional[str] = None,
+    record_idx: Optional[int] = None,
+) -> pd.DataFrame:
+    """
+    Original DataFrame extractor (kept) with one important robustness fix:
+    uses m.span("expr") for correct char_start/char_end.
+    """
+    paragraph = paragraph or ""
+
+    # Strong veto: IR peak-list paragraphs are almost never “time events”
+    if _looks_like_peak_list(paragraph):
+        return pd.DataFrame()
+
+    rows = []
+    for m in _TIME_RE.finditer(paragraph):
+        expr = (m.group("expr") or "").strip()
+        start, end = m.span("expr")  # more correct than m.start()/m.end()
+
+        # skip time-like tokens that are inside spectroscopy contexts
+        if _looks_like_spectroscopy(paragraph, start, end):
+            continue
+
+        unit = _infer_unit(expr)
+        is_numeric = _is_numeric_text(expr)
+        is_ambiguous = (not is_numeric) or (unit.upper() == "N/A")
+
+        bucket = coarse_bucket_from_context(paragraph, start, end, window=200)
+        sentence = _sentence_span(paragraph, start, end)
+
+        rows.append({
+            "record_idx": record_idx,
+            "doi": (doi or "").strip() or None,
+            "coarse_bucket": bucket,
+            "time_text": expr,
+            "unit": unit,
+            "is_numeric": is_numeric,
+            "is_ambiguous": is_ambiguous,
+            "sentence": sentence,
+            "char_start": start,
+            "char_end": end,
+        })
+
+    return pd.DataFrame(rows)
+
+
+def extract_time_events_from_df(df: pd.DataFrame, text_col: str, doi_col: Optional[str] = None) -> pd.DataFrame:
+    """Apply extract_time_events_from_paragraph row-wise over a dataframe."""
+    out = []
+    for i, row in df.iterrows():
+        paragraph = row.get(text_col, "") or ""
+        doi = row.get(doi_col, None) if doi_col else None
+        out.append(extract_time_events_from_paragraph(paragraph, doi=doi, record_idx=i))
+
+    if not out:
+        return pd.DataFrame()
+    return pd.concat(out, ignore_index=True)
+
+
+def extract_time_event_dicts_from_paragraph(
+    paragraph: str,
+    nlp: Optional[Any] = None,
+    use_spacy_for_sentence: bool = False,
+    window: int = 200,
+) -> List[Dict[str, object]]:
+    """
+    List-of-dicts version: each dict corresponds to one time mention
+    (same fields as your DataFrame rows).
+    """
+    paragraph = paragraph or ""
+
+    # Strong veto: IR peak-list paragraphs are almost never “time events”
+    if _looks_like_peak_list(paragraph):
+        return []
+
+    out: List[Dict[str, object]] = []
+
+    for m in _TIME_RE.finditer(paragraph):
+        expr = (m.group("expr") or "").strip()
+        start, end = m.span("expr")
+
+        # skip time-like tokens that are inside spectroscopy contexts
+        if _looks_like_spectroscopy(paragraph, start, end):
+            continue
+
+        unit = _infer_unit(expr)
+        is_numeric = _is_numeric_text(expr)
+        is_ambiguous = (not is_numeric) or (unit.upper() == "N/A")
+
+        bucket = coarse_bucket_from_context(paragraph, start, end, window=window)
+
+        if use_spacy_for_sentence and (nlp is not None):
+            sentence = _sentence_span_spacy(paragraph, start, end, nlp)
+        else:
+            sentence = _sentence_span(paragraph, start, end)
+
+        out.append({
+            "context": bucket,
+            "time_text": expr,
+            "unit": unit,
+            "is_numeric": is_numeric,
+            "is_ambiguous": is_ambiguous,
+            "sentence": sentence,
+            "char_start": start,
+            "char_end": end,
+        })
+
+    return out
+
+
+def extract_time_event_dicts_from_df(
+    df: pd.DataFrame,
+    text_col: str,
+    doi_col: Optional[str] = None,
+    *,
+    nlp: Optional[Any] = None,
+    use_spacy_for_sentence: bool = False,
+    window: int = 200,
+) -> List[Dict[str, object]]:
+    """
+    Apply extract_time_event_dicts_from_paragraph row-wise, returning a flat list of dicts.
+    """
+    all_rows: List[Dict[str, object]] = []
+    for i, row in df.iterrows():
+        paragraph = row.get(text_col, "") or ""
+        doi = row.get(doi_col, None) if doi_col else None
+        all_rows.extend(
+            extract_time_event_dicts_from_paragraph(
+                paragraph,
+                nlp=nlp,
+                use_spacy_for_sentence=use_spacy_for_sentence,
+                window=window,
+            )
+        )
+    return all_rows
+
+
 def celsius_2_kelvin(temperature):
     """
     Simple function that converts temperature from celsius
@@ -1322,6 +1874,148 @@ def reaction_temperature_breakdown(reaction_temperature, spacy_doc):
             drying_temp,
             melting_temp,
             crystalization_temp]
+
+def extract_temperature_events_from_paragraph(
+    paragraph: str,
+    doi: Optional[str] = None,
+    record_idx: Optional[int] = None,
+) -> pd.DataFrame:
+    paragraph = paragraph or ""
+    rows = []
+
+    paragraph = _expand_temp_lists(paragraph)
+
+    for m in _TEMP_RE.finditer(paragraph):
+        expr = m.group("expr").strip()
+        start, end = m.start(), m.end()
+
+        if _looks_like_spectroscopy(paragraph, start, end):
+            continue
+
+        if _ISOTOPE_VETO_RE.fullmatch(expr.replace(" ", "")):
+            continue
+
+        if _LABEL_1C_2C_VETO.match(expr) and ("°" not in expr) and (" " not in expr):
+            continue
+        if _NMR_CCOUNT_VETO_RE.match(expr):
+            continue
+
+        scale = _infer_temp_scale(expr)
+        is_numeric = _is_numeric_text(expr)
+
+        # Ambiguous = RT/room/ambient (no numeric)
+        is_ambiguous = (not is_numeric) or (scale == "ambient/RT") or (scale == "unknown")
+
+        bucket = coarse_bucket_from_context(paragraph, start, end, window=200)
+        sentence = _sentence_span(paragraph, start, end)
+
+        rows.append({
+            "record_idx": record_idx,
+            "doi": (doi or "").strip() or None,
+            "coarse_bucket": bucket,
+            "temperature_text": expr,
+            "unit_scale": scale,
+            "is_numeric": is_numeric,
+            "is_ambiguous": is_ambiguous,
+            "sentence": sentence,
+            "char_start": start,
+            "char_end": end,
+        })
+
+    return pd.DataFrame(rows)
+
+
+def extract_temperature_event_dicts_from_paragraph(
+    paragraph: str,
+    *,
+    doi: Optional[str] = None,
+    record_idx: Optional[int] = None,
+    window: int = 200,
+) -> List[Dict[str, object]]:
+    """
+    Temperature analogue of `extract_time_event_dicts_from_paragraph`:
+    returns a list of dicts (one per temperature mention).
+
+    Assumes ALL of the following are already defined in your module (as you showed):
+      - _TEMP_RE, _expand_temp_lists, _infer_temp_scale
+      - _looks_like_spectroscopy, _ISOTOPE_VETO_RE, _LABEL_1C_2C_VETO, _NMR_CCOUNT_VETO_RE
+      - _is_numeric_text, _sentence_span, coarse_bucket_from_context
+    """
+    paragraph = paragraph or ""
+
+    # Expand lists like "120, 140, 160 °C" to individual "120 °C, 140 °C, ..."
+    paragraph_expanded = _expand_temp_lists(paragraph)
+
+    out: List[Dict[str, object]] = []
+
+    for m in _TEMP_RE.finditer(paragraph_expanded):
+        expr = (m.group("expr") or "").strip()
+        start, end = m.span("expr")  # use group span for correct char offsets
+
+        # spectroscopy context veto
+        if _looks_like_spectroscopy(paragraph_expanded, start, end):
+            continue
+
+        # isotope label veto (13C, 1H, etc.) — avoid misreading as "°C"
+        compact = expr.replace(" ", "")
+        if _ISOTOPE_VETO_RE.fullmatch(compact):
+            continue
+
+        # Drop plain tokens like "1C" / "2C" / "-3F" etc (common labels), unless they clearly carry ° or spacing.
+        if _LABEL_1C_2C_VETO.match(expr) and ("°" not in expr) and (" " not in expr):
+            continue
+
+        # NMR carbon count veto (e.g. "(12 C," at paragraph starts)
+        if _NMR_CCOUNT_VETO_RE.match(expr):
+            continue
+
+        scale = _infer_temp_scale(expr)
+        is_numeric = _is_numeric_text(expr)
+
+        # Ambiguous temperature mentions: RT/ambient or unknown
+        is_ambiguous = (not is_numeric) or (scale == "ambient/RT") or (scale == "unknown")
+
+        bucket = coarse_bucket_from_context(paragraph_expanded, start, end, window=window)
+        sentence = _sentence_span(paragraph_expanded, start, end)
+
+        out.append(
+            {
+                "coarse_bucket": bucket,
+                "temperature_text": expr,
+                "unit_scale": scale,
+                "is_numeric": is_numeric,
+                "is_ambiguous": is_ambiguous,
+                "sentence": sentence,
+                "char_start": start,
+                "char_end": end,
+            }
+        )
+
+    return out
+
+
+def extract_temperature_event_dicts_from_df(
+    df: pd.DataFrame,
+    text_col: str,
+    doi_col: Optional[str] = None,
+    *,
+    window: int = 200,
+) -> List[Dict[str, object]]:
+    """
+    DataFrame analogue for list-of-dicts temperature extraction.
+    Returns a flat list of dicts across all rows.
+    """
+    all_rows: List[Dict[str, object]] = []
+    for i, row in df.iterrows():
+        paragraph = row.get(text_col, "") or ""
+        # doi = row.get(doi_col, None) if doi_col else None
+        all_rows.extend(
+            extract_temperature_event_dicts_from_paragraph(
+                paragraph,
+                window=window,
+            )
+        )
+    return all_rows
 
 
 def numbers_to_digit(string):
