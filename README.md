@@ -156,8 +156,8 @@ By default the paragraph sentiment model uses NN_tfv. Below is a list of other m
 
 | Rank | Model | Avg Accuracy | Avg Precision | Notes |
 |------|-------|--------------|---------------|-------|
-| 1 | SVM_tfv | 0.9905 | 0.8163 | Best overall accuracy |
-| 2 | **NN_tfv** | 0.9903 | 0.8143 | **Default model** |
+| 1 | **SVM_tfv** | 0.9905 | 0.8163 |**Default model**|
+| 2 | NN_tfv | 0.9903 | 0.8143 | |
 | 3 | RF_tfv | 0.9904 | 0.7730 | High accuracy, lower precision |
 | 4 | RF_CV | 0.9902 | 0.7692 | Stable but conservative |
 | 5 | NN_CV | 0.9889 | 0.8240 | High precision |
@@ -201,6 +201,8 @@ for file_path in all_files:
     for paragraph, data_style_1, data_style_2 in syn_data:
         transformer_dataset.append({'paragraph':paragraph, "condition":data_style_1})
         standard_dataset.append({'paragraph':paragraph, "condition":data_style_2})
+filetyper.list_2_json(transformer_dataset, 'transformer_dataset.jsonl')
+filetyper.list_2_json(standard_dataset, 'standard_dataset.json')
 ```
 
 ## LICENSE

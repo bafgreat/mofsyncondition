@@ -24,10 +24,11 @@ def numpy_to_json(ndarray, file_name):
 
 
 def list_2_json(list_obj, file_name):
-    '''
-    write a list to json
-    '''
-    json.dump(list_obj, codecs.open(file_name, 'w', encoding='utf-8'))
+    """
+    Write a list to a JSON file with indentation.
+    """
+    with open(file_name, "w", encoding="utf-8") as f:
+        json.dump(list_obj, f, indent=4, sort_keys=True)
 
 
 def write_json(json_obj, file_name):

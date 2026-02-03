@@ -31,14 +31,13 @@ class MOFSynConditionExtractor:
     - Regex-based condition extraction for time and temperature, with bucketing.
     """
 
-    paragraph_model: str = "NN_tfv"
+    paragraph_model: str = "SVM_tfv"
 
     ner_model: Any = None
 
     context_window: int = 200
     use_spacy_sentence: bool = False
     tokenizer: Callable[[str], Tuple[List[str], Any]] = doc_parser.tokenize_doc
-
 
     def __post_init__(self) -> None:
         """
@@ -53,9 +52,9 @@ class MOFSynConditionExtractor:
         self._method_pattern = chemical_entity_regex.synthetic_method_re()
         self._mof_alias_list = chemical_entity_regex.mof_regex()
 
-
         if self.ner_model is None:
             self.ner_model = spacy.load("en_mof_chem_ner")
+
     def get_synthetic_paragraph(self, source: ParagraphInput, model: Optional[str] = None):
         """
         A function that extract synthetic paragraphs from a file or
@@ -144,7 +143,6 @@ class MOFSynConditionExtractor:
             )
         return grouped
 
-
     @staticmethod
     def _unique_texts(ents: List[Dict[str, Any]]) -> List[str]:
         """
@@ -188,7 +186,6 @@ class MOFSynConditionExtractor:
             window=self.context_window,
         )
 
-
     def extract_temperature_events(self, paragraph: str) -> List[Dict[str, object]]:
         """
         Extract temperature mentions from a paragraph using regex-based detection.
@@ -212,7 +209,6 @@ class MOFSynConditionExtractor:
             - char_start : int
             - char_end : int
         """
-
         return chemical_entity_regex.extract_temperature_event_dicts_from_paragraph(
             paragraph,
             window=self.context_window,
